@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:15.18-trixie
+    restart: unless-stopped
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_USER: postgres
+      POSTGRES_DB: obligations_tracker
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+volumes:
+  postgres-data:
