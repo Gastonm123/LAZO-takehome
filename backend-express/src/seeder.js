@@ -1,8 +1,9 @@
-import { init } from './db/orm.js';
+import { init } from './lib/orm.js';
 import Obligation from './models/obligation.js';
 import ObligationAudit from './models/obligationAudit.js';
-import { obligations } from './data/obligation.js';
-import { obligationAudits } from './data/obligationAudit.js';
+import { obligations } from './data/obligationMockup.js';
+import { obligationAudits } from './data/obligationAuditMockup.js';
+import { logger } from './lib/logging.js';
 
 const initDB = async () => {
     await init();
@@ -38,6 +39,6 @@ async function main() {
 }
 
 main().catch(error => {
-    console.error(error);
+    logger.error(error);
     process.exit(1);
 });

@@ -4,7 +4,7 @@
  * Model fields: id, state, dueDate, owner, requiresDocument, documentUrl,
  * companyTaxId, title, type, description, createdAt, updatedAt
  *
- * @typedef {import('./obligationAudit.js').ObligationAudit} ObligationAudit
+ * @typedef {import('./obligationAuditMockup.js').ObligationAudit} ObligationAudit
  */
 
 /** @type {Array<Record<string, unknown>>} */
