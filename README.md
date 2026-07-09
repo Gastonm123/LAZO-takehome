@@ -218,9 +218,28 @@ cd backend-express && npm run seed && npm run test:run
 
 **Nota:** en tests importar clases concretas (`ObligationLogic.ts`, `MockObligationsClient.ts`), no `@/lib/logic/obligation/index.ts` porque tiene `import "server-only"`.
 
+### E2E — experiencia de usuario (`frontend/`)
+
+**Stack:** Playwright (Chromium). Levanta `next dev` con `USE_MOCK_DATA=true`; no requiere backend ni Postgres.
+
+| Archivo | Qué cubre |
+|---------|-----------|
+| `e2e/ux-flow.spec.ts` | Dashboard → listado (búsqueda) → detalle (vencido, audit) → transición → alta → edición → cambio de idioma |
+
+```bash
+cd frontend
+npm install
+npx playwright install chromium   # primera vez
+npm run test:e2e                  # headless
+npm run test:e2e:ui               # modo interactivo
+```
+
+**Config:** `playwright.config.ts` (webServer en puerto **3001** con `USE_MOCK_DATA=true`; no reutiliza un `next dev` en 3000).
+
+**Nota:** si tenés `npm run dev` en 3000, no hace falta apagarlo; E2E levanta su propio server en 3001.
+
 ### Pendiente
 
-- E2E con Playwright
 - Tests de `HttpObligationsClient` (mock `fetch`)
 - RTL para `AuditTrail`, `ObligationForm`
 - supertest: conflictos 409 (optimistic lock)
@@ -234,7 +253,6 @@ cd backend-express && npm run seed && npm run test:run
 
 ## Mejoras pendientes
 
-- E2E con Playwright (opcional)
 - Búsqueda/orden server-side en frontend con skeleton optimista
 - Endpoint audit: responder JSON array directo (sin `JSON.stringify`)
 - Feedback de errores de formulario más rico

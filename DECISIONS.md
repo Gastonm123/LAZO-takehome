@@ -120,20 +120,21 @@ Estados y KPIs traducidos; tipos de obligación no.
 
 ## Testing
 
-**Stack:** Vitest (backend + frontend), supertest (HTTP backend), Testing Library + jsdom (frontend).
+**Stack:** Vitest (backend + frontend), supertest (HTTP backend), Testing Library + jsdom (frontend), Playwright E2E (frontend UX).
 
-**Decisión:** separar tres capas:
+**Decisión:** separar cuatro capas:
 1. **Unit sin DB** — dominio (`ObligationLogic`) y schemas Zod.
 2. **Integración HTTP** — supertest contra `createApp()`; se salta si Postgres no responde.
 3. **Frontend sin red** — `ObligationLogic`, `MockObligationsClient`, componentes con i18n mockeado.
+4. **E2E UX** — Playwright contra `next dev` con mock in-memory; flujo completo de navegación, CRUD y transiciones.
 
-**Scripts:** `npm run test:run` y `npm run test` (watch) en `backend-express/` y `frontend/`.
+**Scripts:** `npm run test:run` y `npm run test` (watch) en `backend-express/` y `frontend/`; `npm run test:e2e` en `frontend/` (Playwright).
 
 **Arquitectura relevante:** `backend-express/src/app.ts` exporta Express sin listener para no ocupar puerto en tests.
 
 **Regla frontend:** no importar `lib/logic/obligation/index.ts` en tests (`server-only`); usar archivos concretos de la carpeta.
 
-**Pendiente:** Playwright E2E; `HttpObligationsClient` con fetch mock; RTL para formulario y audit trail; 409 en supertest.
+**Pendiente:** `HttpObligationsClient` con fetch mock; RTL para formulario y audit trail; 409 en supertest.
 
 Detalle de archivos y troubleshooting: [README.md § Testing](./README.md#testing).
 
