@@ -1,0 +1,99 @@
+{
+  "app": {
+    "title": "Compliance Obligations Tracker",
+    "user": "User"
+  },
+  "nav": { "dashboard": "Dashboard", "obligations": "Obligaciones" },
+  "footer": {
+    "copyright": "© {{year}} LAZO Compliance. Todos los derechos reservados.",
+    "language": "Idioma"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "search": "Buscar obligaciones...",
+    "sortBy": "Ordenar por",
+    "dueDate": "Fecha de vencimiento",
+    "createdAt": "Fecha de creación",
+    "updatedAt": "Última edición",
+    "owner": "Responsable",
+    "type": "Tipo",
+    "state": "Estado",
+    "title": "Título",
+    "description": "Descripción",
+    "taxId": "Tax ID de la empresa",
+    "requiresDocument": "Requiere documento",
+    "yes": "Sí",
+    "no": "No",
+    "document": "Documento",
+    "attached": "Adjunto",
+    "missing": "Faltante",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "back": "Volver"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "stats": {
+      "total": "Total",
+      "overdue": "Vencidos",
+      "upcomingDue": "Próximos vencimientos",
+      "pending": "Pendientes",
+      "inProgress": "En progreso",
+      "submitted": "Enviados",
+      "done": "Hechos"
+    },
+    "upcomingTable": "Próximos 10 vencimientos"
+  },
+  "obligations": {
+    "title": "Obligaciones",
+    "empty": "No se encontraron obligaciones",
+    "create": "Nueva obligación"
+  },
+  "form": {
+    "createTitle": "Nueva obligación",
+    "editTitle": "Editar obligación",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "created": "Obligación creada",
+    "updated": "Obligación actualizada",
+    "documentUrl": "URL del documento"
+  },
+  "detail": {
+    "auditTrail": "Historial de cambios",
+    "auditField": "Campo",
+    "auditFrom": "Valor anterior",
+    "auditTo": "Valor siguiente",
+    "auditDate": "Fecha",
+    "auditEmpty": "Sin cambios registrados",
+    "actions": {
+      "start": "Iniciar",
+      "submit": "Enviar",
+      "markAsDone": "Marcar como hecho",
+      "rework": "Retrabajar",
+      "reopen": "Reabrir",
+      "backToPending": "Volver a pendiente"
+    },
+    "deleted": "Obligación eliminada",
+    "transitioned": "Estado actualizado"
+  },
+  "state": {
+    "pending": "Pendiente",
+    "in_progress": "En progreso",
+    "submitted": "Enviado",
+    "done": "Hecho"
+  },
+  "fields": {
+    "state": "Estado",
+    "dueDate": "Fecha de vencimiento",
+    "owner": "Responsable",
+    "title": "Título",
+    "description": "Descripción",
+    "type": "Tipo",
+    "companyTaxId": "Tax ID de la empresa",
+    "requiresDocument": "Requiere documento",
+    "documentUrl": "URL del documento",
+    "createdAt": "Fecha de creación",
+    "updatedAt": "Última edición"
+  }
+}

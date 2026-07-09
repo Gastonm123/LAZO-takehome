@@ -1,0 +1,99 @@
+{
+  "app": {
+    "title": "Compliance Obligations Tracker",
+    "user": "User"
+  },
+  "nav": { "dashboard": "Dashboard", "obligations": "Obligations" },
+  "footer": {
+    "copyright": "© {{year}} LAZO Compliance. All rights reserved.",
+    "language": "Language"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "search": "Search obligations...",
+    "sortBy": "Sort by",
+    "dueDate": "Due date",
+    "createdAt": "Creation date",
+    "updatedAt": "Last edit",
+    "owner": "Owner",
+    "type": "Type",
+    "state": "State",
+    "title": "Title",
+    "description": "Description",
+    "taxId": "Company Tax ID",
+    "requiresDocument": "Requires document",
+    "yes": "Yes",
+    "no": "No",
+    "document": "Document",
+    "attached": "Attached",
+    "missing": "Missing",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "stats": {
+      "total": "Total",
+      "overdue": "Overdue",
+      "upcomingDue": "Upcoming due",
+      "pending": "Pending",
+      "inProgress": "In progress",
+      "submitted": "Submitted",
+      "done": "Done"
+    },
+    "upcomingTable": "Next 10 upcoming due dates"
+  },
+  "obligations": {
+    "title": "Obligations",
+    "empty": "No obligations found",
+    "create": "New obligation"
+  },
+  "form": {
+    "createTitle": "New obligation",
+    "editTitle": "Edit obligation",
+    "save": "Save",
+    "cancel": "Cancel",
+    "created": "Obligation created",
+    "updated": "Obligation updated",
+    "documentUrl": "Document URL"
+  },
+  "detail": {
+    "auditTrail": "Audit trail",
+    "auditField": "Field",
+    "auditFrom": "Previous value",
+    "auditTo": "Next value",
+    "auditDate": "Date",
+    "auditEmpty": "No changes recorded",
+    "actions": {
+      "start": "Start",
+      "submit": "Submit",
+      "markAsDone": "Mark as done",
+      "rework": "Rework",
+      "reopen": "Reopen",
+      "backToPending": "Back to pending"
+    },
+    "deleted": "Obligation deleted",
+    "transitioned": "State updated"
+  },
+  "state": {
+    "pending": "Pending",
+    "in_progress": "In Progress",
+    "submitted": "Submitted",
+    "done": "Done"
+  },
+  "fields": {
+    "state": "State",
+    "dueDate": "Due date",
+    "owner": "Owner",
+    "title": "Title",
+    "description": "Description",
+    "type": "Type",
+    "companyTaxId": "Company Tax ID",
+    "requiresDocument": "Requires document",
+    "documentUrl": "Document URL",
+    "createdAt": "Creation date",
+    "updatedAt": "Last edit"
+  }
+}
