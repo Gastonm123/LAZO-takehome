@@ -4,4 +4,4 @@ export const dummy = {
 };
 
 // export const logger = console;
-export const logger = dummy;
+export const logger = console;
