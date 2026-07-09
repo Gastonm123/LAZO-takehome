@@ -17,13 +17,13 @@ class Obligation extends Model<
   declare state: ObligationState;
   declare dueDate: Date;
   declare owner: string;
-  declare requiresDocument: CreationOptional<boolean>;
+  declare requiresDocument: boolean;
   declare documentUrl: string | null;
   declare companyTaxId: string;
   declare title: string;
   declare type: string;
   declare description: string | null;
-  declare version: CreationOptional<number>;
+  declare version: number;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }

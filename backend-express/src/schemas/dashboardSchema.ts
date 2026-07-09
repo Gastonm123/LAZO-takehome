@@ -9,5 +9,5 @@ export const DashboardSchema = z.object({
     inProgress: z.number(),
     submitted: z.number(),
     done: z.number(),
-    upcomingObligations: z.array(ObligationPublicSchema)
-})
+    upcomingObligations: z.array(ObligationPublicSchema),
+});

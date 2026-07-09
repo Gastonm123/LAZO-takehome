@@ -1,45 +1,42 @@
-import { init } from "../lib/orm.js";
 import ObligationModel from "../models/obligation.js";
+import ObligationAuditModel from "../models/obligationAudit.js";
+import { sequelize } from "../lib/orm.js";
 import {
-  ObligationId,
-  ObligationBasicMutation,
-  ObligationState,
-  ObligationSearch,
-  MaskedTaxId,
-  ObligationPublicSchema,
-  ObligationSchema
+    ObligationId,
+    ObligationState,
+    ObligationSearch,
+    MaskedTaxId,
+    ObligationPublicSchema,
+    ObligationCreate,
+    ObligationUpdate,
 } from "../schemas/obligationSchema.js";
-import {
-    ObligationAuditSchema
-} from "../schemas/obligationAuditSchema.js";
+import { ObligationAuditSchema } from "../schemas/obligationAuditSchema.js";
 import z from "zod";
-import { OptimisticLockError } from "sequelize";
+import { OptimisticLockError, ValidationError } from "sequelize";
 import { logger } from "../lib/logging.js";
 import { InvalidCall, NotFoundError, SynchError } from "../lib/errors.js";
-import ObligationAudit from "../models/obligationAudit.js";
+import { ObligationAudit } from "./obligationAudit.js";
 
-type ObligationState = z.infer<typeof ObligationState>;
-type ObligationBasicMutation = z.infer<typeof ObligationBasicMutation>;
-type ObligationSearch = z.infer<typeof ObligationSearch>;
-type MaskedTaxId = z.infer<typeof MaskedTaxId>;
-type ObligationPublicSchema = z.infer<typeof ObligationPublicSchema>;
-type ObligationAuditSchema = z.infer<typeof ObligationAuditSchema>;
-type ObligationSchema = z.infer<typeof ObligationSchema>;
-type ObligationId = z.infer<typeof ObligationId>;
+type ObligationStateType = z.infer<typeof ObligationState>;
+type ObligationCreateType = z.infer<typeof ObligationCreate>;
+type ObligationUpdateType = z.infer<typeof ObligationUpdate>;
+type ObligationSearchType = z.infer<typeof ObligationSearch>;
+type MaskedTaxIdType = z.infer<typeof MaskedTaxId>;
+type ObligationPublicSchemaType = z.infer<typeof ObligationPublicSchema>;
+type ObligationAuditSchemaType = z.infer<typeof ObligationAuditSchema>;
+type ObligationIdType = z.infer<typeof ObligationId>;
 
-const ALLOWED_TRANSITIONS : Record<
-    ObligationState,
-    readonly ObligationState[]> =
-{
+const ALLOWED_TRANSITIONS: Record<
+    ObligationStateType,
+    readonly ObligationStateType[]
+> = {
     pending: ["in_progress"],
     in_progress: ["submitted", "pending"],
     submitted: ["done", "in_progress"],
-    done: ["in_progress"]
-}
+    done: ["in_progress"],
+};
 
-
-function maskTaxId(value:string): MaskedTaxId {
-    // borrar todo lo que no sea digitos
+function maskTaxId(value: string): MaskedTaxIdType {
     const digits = value.replace(/\D/g, "");
     if (digits.length < 4) {
         return MaskedTaxId.parse(value);
@@ -47,156 +44,273 @@ function maskTaxId(value:string): MaskedTaxId {
     return MaskedTaxId.parse(`••••${digits.slice(-4)}`);
 }
 
+function serializeAuditValue(value: unknown): string {
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
+    if (value === null || value === undefined) {
+        return "";
+    }
+    return String(value);
+}
+
+function fieldChanged(before: unknown, after: unknown): boolean {
+    if (before instanceof Date && after instanceof Date) {
+        return before.getTime() !== after.getTime();
+    }
+    return before !== after;
+}
 
 class Obligation {
-    declare private obligation: ObligationModel
-    declare private obligationId: ObligationId
+    declare private obligation: ObligationModel;
+    declare private obligationId: ObligationIdType;
 
-    static async init(obligationId : ObligationId): Promise<Obligation> {
+    static async init(obligationId: ObligationIdType): Promise<Obligation> {
         const obj = new Obligation();
         const row = await ObligationModel.findByPk(obligationId);
         if (row === null) {
-            throw new NotFoundError(`No se encontro la obligacion ${obligationId}`);
+            throw new NotFoundError(
+                `No se encontro la obligacion ${obligationId}`,
+            );
         }
         obj.obligation = row;
         obj.obligationId = obligationId;
         return obj;
     }
 
-    read(): ObligationPublicSchema {
+    read(): ObligationPublicSchemaType {
+        // console.log(this.obligation);
         const publicSchema = Obligation.toPublicSchema(this.obligation);
-        if (publicSchema === null)
-            throw new Error(`No es posible leer la obligacion ${this.obligationId}`)
+        if (publicSchema === null) {
+            logger.error(`API: error leyendo la obligacion ${this.obligationId}`)
+            throw new Error(
+                `No es posible leer la obligacion ${this.obligationId}`,
+            );
+        }
         return publicSchema;
     }
 
-    async update(attributes: ObligationBasicMutation) {
+    async update(attributes: ObligationUpdateType): Promise<void> {
+        if (!ObligationLogic.validateBasicMutation(this.obligation, attributes)) {
+            throw new InvalidCall("Invalid mutation");
+        }
+
+        const pre = this.obligation.get({ plain: true }) as Record<string, unknown>;
+
         try {
-            const pre = this.obligation.get({plain:true});
-            this.obligation.set(attributes);
-            const row = await this.obligation.save({returning:["updatedAt"]});
-            for (const [field, value] of Object.entries(attributes)) {
-                if (value !== pre[field]) {
+            await sequelize.transaction(async (transaction) => {
+                this.obligation.set({ ...attributes, version: this.obligation.version+1 });
+                await this.obligation.save({ transaction });
+                const updatedAt = this.obligation.updatedAt!;
+
+                for (const [field, value] of Object.entries(attributes)) {
+                    if (!fieldChanged(pre[field], value)) {
+                        continue;
+                    }
+
                     await ObligationAudit.create(
-                        ObligationId.parse(row.id), 
+                        this.obligationId,
                         ObligationAuditSchema.parse({
                             field,
-                            from:String(pre[field]),
-                            to:String(value),
-                            date:row.updatedAt,
-                        }))
+                            from: serializeAuditValue(pre[field]),
+                            to: serializeAuditValue(value),
+                            date: updatedAt,
+                        }),
+                        transaction,
+                    );
                 }
-            }
+            });
         } catch (error) {
             if (error instanceof OptimisticLockError) {
-                throw new SynchError(`La obligacion esta desincronizada`);
-            } else {
-                throw error;
+                throw new SynchError("La obligacion esta desincronizada");
             }
+            logger.error(`API: error actualizando obligacion ${this.obligationId}`)
+            throw error;
         }
     }
 
-    async delete() {
-        return this.obligation.destroy();
+    async delete(): Promise<void> {
+        await sequelize.transaction(async (transaction) => {
+            await ObligationAuditModel.destroy({
+                where: { obligationId: this.obligationId },
+                transaction,
+            });
+            await this.obligation.destroy({ transaction });
+        });
     }
 
-    async transitionState(state: ObligationState) {
+    async transitionState(state: ObligationStateType): Promise<void> {
         const from = ObligationState.safeParse(this.obligation.state);
-        if (!from.success)
+        if (!from.success) {
+            logger.error(`API: Error de parseo de la obligacion ${this.obligation.id}`);
             throw from.error;
-        if (!ObligationLogic.validateTransition(this.obligation, from.data, state))
+        }
+        if (!ObligationLogic.validateTransition(this.obligation, from.data, state)) {
             throw new InvalidCall("Transicion Invalida");
-        
+        }
+
+        const previousState = from.data;
+
         try {
-            this.obligation.set({state})
-            await this.obligation.save();
+            await sequelize.transaction(async (transaction) => {
+                this.obligation.set({ state });
+                await this.obligation.save({ transaction });
+
+                await ObligationAudit.create(
+                    this.obligationId,
+                    ObligationAuditSchema.parse({
+                        field: "state",
+                        from: previousState,
+                        to: state,
+                        date: this.obligation.updatedAt!,
+                    }),
+                    transaction,
+                );
+            });
         } catch (error) {
             if (error instanceof OptimisticLockError) {
-                throw new SynchError(`La obligacion esta desincronizada`);
-            } else {
-                throw error;
+                throw new SynchError("La obligacion esta desincronizada");
             }
+            logger.error(`API: error cambiando estado de obligacion ${this.obligationId}`)
+            throw error;
         }
     }
 
-    async getAuditTrail(): Promise<ObligationAuditSchema[]> {
-        const audits = await ObligationAudit.findAll({ where: { obligationId: this.obligationId } })
+    async getAuditTrail(): Promise<ObligationAuditSchemaType[]> {
+        const audits = await ObligationAuditModel.findAll({
+            where: { obligationId: this.obligationId },
+            order: [["date", "ASC"]],
+        });
 
         return audits.map((audit) => {
             const parsed = ObligationAuditSchema.safeParse(audit);
-            // if it's not possible to return all dont return any
             if (!parsed.success) {
+                console.error(`API: error parseando audit:\n${JSON.stringify(audit.get({ plain: true }))}`)
                 throw parsed.error;
             }
             return parsed.data;
         });
     }
 
-    static async create(attributes: ObligationBasicMutation): Promise<Number> {
-        let obligationId = null;
+    static async create(
+        attributes: ObligationCreateType,
+    ): Promise<number> {
         try {
-            const row = await ObligationModel.create({
-                ...attributes,
-                state: "pending"
-            }, {returning:["id", "updatedAt"]});
-            for (const [field, value] of Object.entries(attributes)) {
-                if (value !== "" && value != null) {
+            return sequelize.transaction(async (transaction) => {
+                const row = await ObligationModel.create(
+                    {
+                        dueDate: attributes.dueDate,
+                        owner: attributes.owner,
+                        requiresDocument: attributes.requiresDocument,
+                        documentUrl: attributes.documentUrl ?? null,
+                        description: attributes.description ?? null,
+                        companyTaxId: attributes.companyTaxId,
+                        title: attributes.title,
+                        type: attributes.type,
+                        state: "pending",
+                        version: 1,
+                    },
+                    { transaction },
+                );
+
+                for (const [field, value] of Object.entries(attributes)) {
+                    if (value === "" || value == null) {
+                        continue;
+                    }
+
                     await ObligationAudit.create(
-                        ObligationId.parse(row.id), 
+                        ObligationId.parse(row.id),
                         ObligationAuditSchema.parse({
                             field,
-                            from:"",
-                            to:value,
-                            date:row.updatedAt,
-                        }))
+                            from: "",
+                            to: serializeAuditValue(value),
+                            date: row.updatedAt!,
+                        }),
+                        transaction,
+                    );
                 }
-            }
-            obligationId = row.id;
+
+                return ObligationId.parse(row.id);
+            });
         } catch (error) {
+            if (error instanceof ValidationError) {
+                logger.error("API: error de validacion")
+                error.errors.forEach(e => logger.error(e))
+            }
+            // console.log(error);
+            // console.log(attributes);
+            // console.log(`API: error de creacion: ${error.name}`)
             throw error;
         }
-        return obligationId;
     }
 
-    static async search(attributes: ObligationSearch): Promise<Array<ObligationPublicSchema>> {
-        // for now return all obligations
+    static async search(
+        attributes: ObligationSearchType,
+    ): Promise<Array<ObligationPublicSchemaType>> {
         const obligations = await ObligationModel.findAll();
-        const publicObligations = obligations
-            .map(ob => Obligation.toPublicSchema(ob))
-            .filter(ob => ob !== null)
-        return publicObligations;
+        return obligations
+            .map((ob) => Obligation.toPublicSchema(ob))
+            .filter((ob): ob is ObligationPublicSchemaType => ob !== null);
     }
 
-    static toPublicSchema(obligation: ObligationModel): ObligationPublicSchema | null {
-        const ob = {...obligation, companyTaxId: maskTaxId(obligation.companyTaxId)};
+    static toPublicSchema(
+        obligation: ObligationModel,
+    ): ObligationPublicSchemaType | null {
+        const ob = {
+            ...obligation.get({ plain: true }),
+            companyTaxId: maskTaxId(obligation.companyTaxId),
+        };
         const parsed = ObligationPublicSchema.safeParse(ob);
         if (!parsed.success) {
-            logger.error(`API: Error de parseo de la obligacion ${ob.id}`);
+            logger.error(`API: Error de parseo de la obligacion ${obligation.id}`);
             return null;
         }
         return parsed.data;
     }
-};
-
+}
 
 /* Clase de logicca separada de la base de datos y HTTP
  */
 class ObligationLogic {
-    static validateTransition(obligation: ObligationModel, from: ObligationState, to: ObligationState): boolean {
-        if (!ALLOWED_TRANSITIONS[from].includes(to))
-            return false;
+    static validateBasicMutation(
+        obligation: ObligationModel,
+        attributes: ObligationCreateType | ObligationUpdateType,
+    ): boolean {
+        const requiresDocument =
+            attributes.requiresDocument ?? obligation.requiresDocument;
+        const documentUrl =
+            attributes.documentUrl !== undefined
+                ? attributes.documentUrl
+                : obligation.documentUrl;
 
-        if (to === "submitted" &&
-            obligation.requiresDocument &&
-            obligation.documentUrl == null)
-        {
+        if (requiresDocument && (documentUrl === null || documentUrl === undefined)) {
             return false;
         }
 
         return true;
     }
 
-    static isOverdue(obligation:ObligationModel): boolean {
+    static validateTransition(
+        obligation: ObligationModel,
+        from: ObligationStateType,
+        to: ObligationStateType,
+    ): boolean {
+        if (!ALLOWED_TRANSITIONS[from].includes(to)) {
+            return false;
+        }
+
+        if (
+            to === "submitted" &&
+            obligation.requiresDocument &&
+            (obligation.documentUrl === null || obligation.documentUrl === undefined)
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    static isOverdue(obligation: ObligationModel): boolean {
         if (obligation.state === "done" || obligation.state === "submitted") {
             return false;
         }
@@ -204,13 +318,13 @@ class ObligationLogic {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const due = obligation.dueDate;
+        const due = new Date(obligation.dueDate);
         due.setHours(0, 0, 0, 0);
 
         return due < today;
     }
 
-    static isUpcomingDue(obligation:ObligationModel): boolean {
+    static isUpcomingDue(obligation: ObligationModel): boolean {
         if (obligation.state === "done" || obligation.state === "submitted") {
             return false;
         }
@@ -218,10 +332,10 @@ class ObligationLogic {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const nextWeek = new Date();
+        const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 8);
 
-        const due = obligation.dueDate;
+        const due = new Date(obligation.dueDate);
         due.setHours(0, 0, 0, 0);
 
         return due >= today && due < nextWeek;

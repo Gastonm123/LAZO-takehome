@@ -1,8 +1,14 @@
 {
-  "name": "lazo-backend-express",
+  "name": "lazo-backend-express-fix",
   "version": "0.1.0",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "seed": "tsx src/seeder.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "build": "tsc"
+  },
   "type": "module",
   "dependencies": {
     "cors": "^2.8.5",
@@ -14,11 +20,16 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.5",
     "@types/pg": "^8.20.0",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "jiti": "^2.7.0",
     "tsx": "^4.23.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.63.0"
   }
 }

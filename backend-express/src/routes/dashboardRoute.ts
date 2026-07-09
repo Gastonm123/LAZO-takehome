@@ -5,10 +5,10 @@ import { Dashboard } from "@/api/dashboard.js";
 const router = express.Router();
 
 router.get(
-  "/summary",
-  asyncHandler(async (_req, res) => {
-    res.json(Dashboard.summary());
-  }),
+    "/summary",
+    asyncHandler(async (_req, res) => {
+        res.json(await Dashboard.summary());
+    }),
 );
 
 export default router;

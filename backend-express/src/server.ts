@@ -9,16 +9,16 @@ dotenv.config();
 
 const port = process.env.BACKEND_PORT || 3000;
 const corsOrigins = (process.env.CORS_ORIGINS ?? "http://localhost:3000")
-  .split(",")
-  .map((origin) => origin.trim());
+    .split(",")
+    .map((origin) => origin.trim());
 
 const app = express();
 
 app.use(
-  cors({
-    origin: corsOrigins,
-    credentials: true,
-  }),
+    cors({
+        origin: corsOrigins,
+        credentials: true,
+    }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

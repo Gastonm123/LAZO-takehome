@@ -1,63 +1,80 @@
 import z from "zod";
 
-export const ObligationId = z.number().nonnegative()
-export const ObligationState = z.enum(["pending", "in_progress", "submitted", "done"])
+export const ObligationId = z.coerce.number().nonnegative();
+export const ObligationState = z.enum([
+    "pending",
+    "in_progress",
+    "submitted",
+    "done",
+]);
 
 export const ObligationSchema = z.object({
     id: ObligationId,
     state: ObligationState,
-    dueDate: z.date(),
+    dueDate: z.coerce.date(),
     owner: z.string(),
     requiresDocument: z.boolean(),
-    documentUrl: z.string(),
+    documentUrl: z.string().nullable(),
     companyTaxId: z.string(),
     title: z.string(),
     type: z.string(),
-    description: z.string(),
+    description: z.string().nullable(),
 });
 
 export const ObligationSearch = z.object({
     search: z.string(),
-    order: z.enum(['createdAt', 'updatedAt', 'dueDate']),
-    direction: z.enum(["ASC", "DEC"])
-})
+    order: z.enum(["createdAt", "updatedAt", "dueDate"]),
+    direction: z.enum(["ASC", "DEC"]),
+});
 
-export const MaskedTaxId = z.string()
-    .refine(taxId => {
-        if (taxId.length>=4 && /\d/.test(taxId.slice(0,-4))) {
-            return false;
-        }
-        return true;
-    }, { message: "Tax ID must be masked (••••1234)" })
+export const MaskedTaxId = z
+    .string()
+    .refine(
+        (taxId) => {
+            if (taxId.length >= 4 && /\d/.test(taxId.slice(0, -4))) {
+                return false;
+            }
+            return true;
+        },
+        { message: "Tax ID must be masked (••••1234)" },
+    )
     .brand<"MaskedTaxId">();
 
 export const ObligationPublicSchema = z.object({
     id: ObligationId,
     state: ObligationState,
-    dueDate: z.date(),
+    dueDate: z.coerce.date(),
     owner: z.string(),
-    requiresDocument: z.boolean(),
-    documentUrl: z.string(),
+    requiresDocument: z.coerce.boolean(),
+    documentUrl: z.string().nullable(),
     companyTaxId: MaskedTaxId,
     title: z.string(),
     type: z.string(),
-    description: z.string(),
+    description: z.string().nullable(),
 });
 
-export const ObligationBasicMutation = z.object({
-    dueDate: z.date(),
+export const ObligationCreate = z.object({
+    dueDate: z.coerce.date(),
     owner: z.string(),
-    requiresDocument: z.boolean(),
-    documentUrl: z.string(),
+    requiresDocument: z.coerce.boolean().default(false),
+    documentUrl: z.string().nullable().optional(),
     companyTaxId: z.string(),
     title: z.string(),
     type: z.string(),
-    description: z.string(),
+    description: z.string().nullable().optional(),
 });
 
-export const ObligationCreate = ObligationBasicMutation;
-export const ObligationUpdate = ObligationBasicMutation;
+export const ObligationUpdate = z.object({
+    dueDate: z.coerce.date().optional(),
+    owner: z.string().optional(),
+    requiresDocument: z.coerce.boolean().optional(),
+    documentUrl: z.string().nullable().optional(),
+    companyTaxId: z.string().optional(),
+    title: z.string().optional(),
+    type: z.string().optional(),
+    description: z.string().nullable().optional(),
+});
 
 export const ObligationChangeState = z.object({
-    state: ObligationState
-})
+    state: ObligationState,
+});

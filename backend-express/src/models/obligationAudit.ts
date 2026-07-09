@@ -1,5 +1,4 @@
 import {
-  CreationOptional,
   DataTypes,
   InferAttributes,
   InferCreationAttributes,
@@ -47,6 +46,7 @@ ObligationAudit.init(
   },
   {
     sequelize,
+    timestamps: false,
     modelName: "ObligationAudit",
     tableName: "obligation_audits",
   },

@@ -1,4 +1,6 @@
 class NotFoundError extends Error {
+    statusCode = 404;
+
     constructor(message: string) {
         super(message);
         Object.setPrototypeOf(this, NotFoundError.prototype);
@@ -6,6 +8,8 @@ class NotFoundError extends Error {
 }
 
 class SynchError extends Error {
+    statusCode = 409;
+
     constructor(message: string) {
         super(message);
         Object.setPrototypeOf(this, SynchError.prototype);
@@ -13,10 +17,12 @@ class SynchError extends Error {
 }
 
 class InvalidCall extends Error {
+    statusCode = 400;
+
     constructor(message: string) {
         super(message);
         Object.setPrototypeOf(this, InvalidCall.prototype);
     }
 }
 
-export { NotFoundError, SynchError, InvalidCall }
+export { NotFoundError, SynchError, InvalidCall };
