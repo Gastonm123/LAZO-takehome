@@ -98,7 +98,7 @@ export class MockObligationsClient extends ObligationsClient {
   }
 
   async getDashboard(): Promise<DashboardSummary> {
-    const obligations = this.store.map((item) => this.logic.withOverdue(item));
+    const obligations = [...this.store];
     const upcomingObligations = [...obligations]
       .filter((o) => o.state !== "submitted" && o.state !== "done")
       .sort(
@@ -120,7 +120,7 @@ export class MockObligationsClient extends ObligationsClient {
   }
 
   async list(): Promise<Obligation[]> {
-    return this.store.map((item) => this.logic.withOverdue(item));
+    return [...this.store];
   }
 
   async getById(id: string): Promise<ObligationDetail> {
@@ -129,7 +129,7 @@ export class MockObligationsClient extends ObligationsClient {
       throw new Error("Obligation not found");
     }
     return {
-      ...this.logic.withOverdue(obligation),
+      ...obligation,
       auditTrail: this.audits[id] ?? [
         {
           field: "state",
@@ -149,8 +149,7 @@ export class MockObligationsClient extends ObligationsClient {
     const timestamp = new Date().toISOString();
     const dueDate = new Date(input.dueDate).toISOString();
 
-    this.store.push(
-      this.logic.withOverdue({
+    this.store.push({
         id,
         type: input.type,
         title: input.title,
@@ -164,8 +163,7 @@ export class MockObligationsClient extends ObligationsClient {
         createdAt: timestamp,
         updatedAt: timestamp,
         overdue: false,
-      }),
-    );
+      });
 
     return id;
   }
@@ -183,7 +181,7 @@ export class MockObligationsClient extends ObligationsClient {
       ? maskTaxId(input.companyTaxId)
       : current.companyTaxId;
 
-    this.store[index] = this.logic.withOverdue({
+    this.store[index] = {
       ...current,
       type: input.type,
       title: input.title,
@@ -194,7 +192,7 @@ export class MockObligationsClient extends ObligationsClient {
       documentUrl: input.requiresDocument ? input.documentUrl : null,
       companyTaxId,
       updatedAt: new Date().toISOString(),
-    });
+    };
 
     return this.getById(id);
   }
@@ -212,11 +210,11 @@ export class MockObligationsClient extends ObligationsClient {
       throw new Error("Obligation not found");
     }
 
-    this.store[index] = this.logic.withOverdue({
+    this.store[index] = {
       ...this.store[index],
       state,
       updatedAt: new Date().toISOString(),
-    });
+    };
 
     return this.getById(id);
   }

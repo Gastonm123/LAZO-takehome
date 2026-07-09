@@ -53,6 +53,7 @@ export const ObligationPublicSchema = z.object({
   description: z.string().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
+  overdue: z.boolean(),
 });
 
 export const ObligationCreate = z.object({

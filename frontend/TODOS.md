@@ -10,7 +10,7 @@
 - [x] Audit agrupado por ISO idéntico, más reciente arriba, campos/estados traducidos
 - [x] Formulario: omitir `companyTaxId` y `description` vacíos; tax id como placeholder en edición
 - [x] `safeParse` Zod al submit (create/update) en el client
-- [x] `isOverdue` detrás de `ObligationsClient` (lógica del backend)
+- [x] `overdue` viene del backend en `ObligationPublicSchema`
 - [x] Switch ES/EN en footer + KPIs traducidos
 - [x] Tipos opacos sin traducir en UI
 
@@ -18,6 +18,4 @@
 
 - [ ] Búsqueda/orden server-side con skeleton optimista (Redux se mantiene)
 - [ ] Feedback de errores de formulario más detallado (toast parseado del backend)
-- [ ] Cuando el backend exponga `overdue` en `read()`, leerlo del API y eliminar `isOverdue` local
-- [ ] Tests de comportamiento frontend
-- [ ] Actualizar o eliminar `FRONTEND.md` (no es fuente de verdad)
+- [x] Tests (ver [README § Testing](../README.md#testing))

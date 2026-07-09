@@ -264,6 +264,7 @@ class Obligation {
         const ob = {
             ...obligation.get({ plain: true }),
             companyTaxId: maskTaxId(obligation.companyTaxId),
+            overdue: ObligationLogic.isOverdue(obligation),
         };
         const parsed = ObligationPublicSchema.safeParse(ob);
         if (!parsed.success) {

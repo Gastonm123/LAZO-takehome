@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import DueDateBadge from "@/components/ui/DueDateBadge";
+import OverdueBadge from "@/components/ui/OverdueBadge";
 import StateBadge from "@/components/ui/StateBadge";
 import type { Obligation } from "@/lib/logic/obligation";
 import { useTranslation } from "react-i18next";
@@ -45,7 +46,10 @@ export default function ObligationsTable({ items }: { items: Obligation[] }) {
                 <td className="px-4 py-3">{item.type}</td>
                 <td className="px-4 py-3">{item.owner}</td>
                 <td className="px-4 py-3">
-                  <DueDateBadge dueDate={item.dueDate} overdue={item.overdue} />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DueDateBadge dueDate={item.dueDate} overdue={item.overdue} />
+                    <OverdueBadge overdue={item.overdue} />
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <StateBadge state={item.state} />

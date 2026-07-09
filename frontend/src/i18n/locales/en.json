@@ -30,7 +30,8 @@
     "missing": "Missing",
     "edit": "Edit",
     "delete": "Delete",
-    "back": "Back"
+    "back": "Back",
+    "overdueBadge": "Overdue"
   },
   "dashboard": {
     "title": "Dashboard",

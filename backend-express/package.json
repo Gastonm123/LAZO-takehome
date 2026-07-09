@@ -7,7 +7,9 @@
     "seed": "tsx src/seeder.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "type": "module",
   "dependencies": {
@@ -25,11 +27,14 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.5",
     "@types/pg": "^8.20.0",
+    "@types/supertest": "^6.0.3",
     "eslint": "^10.6.0",
     "globals": "^17.7.0",
     "jiti": "^2.7.0",
+    "supertest": "^7.1.0",
     "tsx": "^4.23.0",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.63.0"
+    "typescript-eslint": "^8.63.0",
+    "vitest": "^3.2.4"
   }
 }

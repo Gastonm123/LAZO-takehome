@@ -1,31 +1,18 @@
-import cors from "cors";
 import dotenv from "dotenv";
-import express from "express";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { createApp } from "./app.js";
 import { logger } from "./lib/logging.js";
-import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
-import apiRoutes from "./routes/main.js";
 
 dotenv.config();
 
+export const app = createApp();
+
 const port = process.env.BACKEND_PORT || 3000;
-const corsOrigins = (process.env.CORS_ORIGINS ?? "http://localhost:3000")
-    .split(",")
-    .map((origin) => origin.trim());
+const isDirectRun =
+    process.argv[1] !== undefined &&
+    fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 
-const app = express();
-
-app.use(
-    cors({
-        origin: corsOrigins,
-        credentials: true,
-    }),
-);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.use("/api/v1", apiRoutes);
-
-app.use(notFound);
-app.use(errorHandler);
-
-app.listen(port, () => logger.log(`Server running on port ${port}`));
+if (isDirectRun) {
+    app.listen(port, () => logger.log(`Server running on port ${port}`));
+}

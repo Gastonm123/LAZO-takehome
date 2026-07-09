@@ -9,27 +9,9 @@ import type {
   Obligation,
   ObligationAudit,
   ObligationFormValues,
-  ObligationState,
 } from "./types";
 
 export class ObligationLogic {
-  isOverdue(obligation: {
-    state: ObligationState;
-    dueDate: Date | string;
-  }): boolean {
-    if (obligation.state === "done" || obligation.state === "submitted") {
-      return false;
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const due = new Date(obligation.dueDate);
-    due.setHours(0, 0, 0, 0);
-
-    return due < today;
-  }
-
   fromPublic(parsed: z.infer<typeof ObligationPublicSchema>): Obligation {
     return {
       id: String(parsed.id),
@@ -44,14 +26,7 @@ export class ObligationLogic {
       description: parsed.description ?? "",
       createdAt: parsed.createdAt.toISOString(),
       updatedAt: parsed.updatedAt.toISOString(),
-      overdue: this.isOverdue(parsed),
-    };
-  }
-
-  withOverdue(obligation: Obligation): Obligation {
-    return {
-      ...obligation,
-      overdue: this.isOverdue(obligation),
+      overdue: parsed.overdue,
     };
   }
 

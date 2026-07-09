@@ -30,7 +30,8 @@
     "missing": "Faltante",
     "edit": "Editar",
     "delete": "Eliminar",
-    "back": "Volver"
+    "back": "Volver",
+    "overdueBadge": "Vencido"
   },
   "dashboard": {
     "title": "Dashboard",

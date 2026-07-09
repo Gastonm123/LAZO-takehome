@@ -15,6 +15,7 @@ import {
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import DueDateBadge from "@/components/ui/DueDateBadge";
+import OverdueBadge from "@/components/ui/OverdueBadge";
 import StateBadge from "@/components/ui/StateBadge";
 import type { ObligationDetail, ObligationState } from "@/lib/logic/obligation";
 import { formatDate } from "@/lib/utils/formatDate";
@@ -53,8 +54,9 @@ export default function ObligationDetailView({
 
   return (
     <Card className="relative">
-      <div className="absolute right-5 top-5">
+      <div className="absolute right-5 top-5 flex flex-wrap items-center justify-end gap-2">
         <StateBadge state={obligation.state} />
+        <OverdueBadge overdue={obligation.overdue} />
       </div>
 
       <h1 className="pr-28 text-2xl font-semibold text-slate-900">
