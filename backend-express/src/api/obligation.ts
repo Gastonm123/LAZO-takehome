@@ -91,7 +91,7 @@ class Obligation {
     }
 
     async update(attributes: ObligationUpdateType): Promise<void> {
-        if (!ObligationLogic.validateBasicMutation(this.obligation, attributes)) {
+        if (!ObligationLogic.validateUpdate(this.obligation, attributes)) {
             throw new InvalidCall("Invalid mutation");
         }
 
@@ -277,7 +277,7 @@ class Obligation {
 /* Clase de logicca separada de la base de datos y HTTP
  */
 class ObligationLogic {
-    static validateBasicMutation(
+    static validateUpdate(
         obligation: ObligationModel,
         attributes: ObligationCreateType | ObligationUpdateType,
     ): boolean {
@@ -288,7 +288,7 @@ class ObligationLogic {
                 ? attributes.documentUrl
                 : obligation.documentUrl;
 
-        if (requiresDocument && (documentUrl === null || documentUrl === undefined)) {
+        if (requiresDocument && (documentUrl === null || documentUrl === undefined || documentUrl === "")) {
             return false;
         }
 
@@ -307,7 +307,7 @@ class ObligationLogic {
         if (
             to === "submitted" &&
             obligation.requiresDocument &&
-            (obligation.documentUrl === null || obligation.documentUrl === undefined)
+            (obligation.documentUrl === null || obligation.documentUrl === undefined || obligation.documentUrl === "")
         ) {
             return false;
         }
