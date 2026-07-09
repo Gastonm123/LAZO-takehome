@@ -95,7 +95,7 @@ class Obligation {
             throw new InvalidCall("Invalid mutation");
         }
 
-        const pre = this.obligation.get({ plain: true }) as Record<string, unknown>;
+        const pre = {...this.obligation.get({ plain: true })} as Record<string, unknown>;
 
         try {
             await sequelize.transaction(async (transaction) => {
@@ -197,6 +197,7 @@ class Obligation {
     static async create(
         attributes: ObligationCreateType,
     ): Promise<number> {
+        console.log(attributes)
         try {
             return sequelize.transaction(async (transaction) => {
                 const row = await ObligationModel.create(

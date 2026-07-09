@@ -40,12 +40,18 @@ export const MaskedTaxId = z
     )
     .brand<"MaskedTaxId">();
 
+const StringBool = z.coerce.string().transform(str => {
+    if (str === 'true') return true;
+    // if (str === 'false') return false;
+    return false;
+});
+
 export const ObligationPublicSchema = z.object({
     id: ObligationId,
     state: ObligationState,
     dueDate: z.coerce.date(),
     owner: z.string(),
-    requiresDocument: z.coerce.boolean(),
+    requiresDocument: z.boolean(),
     documentUrl: z.string().nullable(),
     companyTaxId: MaskedTaxId,
     title: z.string(),
@@ -59,7 +65,7 @@ export const ObligationPublicSchema = z.object({
 export const ObligationCreate = z.object({
     dueDate: z.coerce.date(),
     owner: z.string(),
-    requiresDocument: z.coerce.boolean().default(false),
+    requiresDocument: StringBool,
     documentUrl: z.string().nullable().optional(),
     companyTaxId: z.string(),
     title: z.string(),
@@ -70,7 +76,7 @@ export const ObligationCreate = z.object({
 export const ObligationUpdate = z.object({
     dueDate: z.coerce.date().optional(),
     owner: z.string().optional(),
-    requiresDocument: z.coerce.boolean().optional(),
+    requiresDocument: StringBool,
     documentUrl: z.string().nullable().optional(),
     companyTaxId: z.string().optional(),
     title: z.string().optional(),
