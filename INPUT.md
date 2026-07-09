@@ -4,25 +4,8 @@ Volcado cronológico de instrucciones y consultas de la conversación sobre LAZO
 
 ---
 
-## 1. Entorno y Cursor
 
-> donde estas corriendo
-
-> podes moverte a wsl?
-
-> fijate que esta dentro de una carpeta onedrive
-
-> el reporte de tokens que sale abajo es un limite de la cuenta o es cuando se resetea la memoria?
-
-> quiero que cuando vayas a resetear la ventana de contexto escribas un archivo resumiendo todo el contexto que manejas hasta el momento. se pude configurar eso?
-
-> si. global
-
-*(User rule global: "Context snapshot before reset" → `CONTEXT-SNAPSHOT.md`.)*
-
----
-
-## 2. Setup del proyecto
+## 1. Setup del proyecto
 
 > copia la carpeta Personal/Lazo de mi escritorio de windows a mi home en wsl
 
@@ -30,7 +13,7 @@ Volcado cronológico de instrucciones y consultas de la conversación sobre LAZO
 
 ---
 
-## 3. Frontend Bootstrap (`frontend/`)
+## 2. Frontend Bootstrap (`frontend/`)
 
 > Arma el frontend en una carpeta dedicada. [instrucciones detalladas: react-bootstrap, redux, .env, spinners, header/footer, dashboard KPIs, obligaciones con tabla/buscador/orden, detalle con transiciones, tema celeste/azul, react-toastify, FRONTEND.md]
 
@@ -40,7 +23,7 @@ Volcado cronológico de instrucciones y consultas de la conversación sobre LAZO
 
 ---
 
-## 4. Frontend Tailwind (`frontend-tw/`)
+## 3. Frontend Tailwind (`frontend-tw/`)
 
 > ok rehacelo pero usando solo tailwind y librerias de componentes si necesitas, en otra carpeta
 
@@ -54,13 +37,7 @@ Volcado cronológico de instrucciones y consultas de la conversación sobre LAZO
 
 ---
 
-## 5. Backend — inicio y datos
-
-> el backend lo quiero hacer yo, para iniciar un proyecto con express seria npm create express ?
-
-> armame la estructura inicial con python y con express en dos carpetas distintas
-
-> te puedo pedir un video explicando las diferencias entre fastapi y express. ya conozco express y soy estudiante de CS asi que anda al punto
+## 4. Backend — inicio y datos
 
 > anda a backend-express y borra todo lo que no sea configuracion inicial. osea package.json y otros archivos similares de la raiz
 
@@ -76,7 +53,7 @@ Volcado cronológico de instrucciones y consultas de la conversación sobre LAZO
 
 ---
 
-## 6. Backend — configuración y tooling
+## 5. Backend — configuración y tooling
 
 > como agrego el alias @ a la config del backend
 
@@ -94,7 +71,7 @@ Volcado cronológico de instrucciones y consultas de la conversación sobre LAZO
 
 ---
 
-## 7. Backend — dominio, tipos y Zod
+## 6. Backend — dominio, tipos y Zod
 
 > me di cuenta de que hay un problema con armar un audit y usar optimistic locking...
 
@@ -120,11 +97,9 @@ Volcado cronológico de instrucciones y consultas de la conversación sobre LAZO
 
 > agrega a DECISIONS.md que decidimos atrapar todos los errores de la api en un middleware
 
-> crea un archivo README por ahora pone que el trabajo se hizo en 8 horas...
-
 ---
 
-## 8. Consultas técnicas (backend / TS)
+## 7. Consultas técnicas (backend / TS)
 
 > dame un ejemplo donde sea util urlencoded si el frontend esta hecho con react y RTK toolkit
 
@@ -182,7 +157,7 @@ Volcado cronológico de instrucciones y consultas de la conversación sobre LAZO
 
 ---
 
-## 9. Backend — fix y documentación
+## 8. Backend — fix y documentación
 
 > copia el backend en otra carpeta y hace los cambios necesarios... tipa rutas, server y middleware... documenta en CAMBIOS.md
 
@@ -210,7 +185,7 @@ Volcado cronológico de instrucciones y consultas de la conversación sobre LAZO
 
 ---
 
-## 10. Otras consultas puntuales
+## 9. Otras consultas puntuales
 
 > hola
 
@@ -235,5 +210,3 @@ Prueba técnica **Compliance Obligations Tracker** (fullstack, 6–8 h efectivas
 - **Dominio:** máquina de estados, documento para `submitted`, `overdue` derivado, tax ID enmascarado, audit trail, concurrencia.
 - **Stack (spec):** backend FastAPI+Pydantic+Postgres; frontend Next.js+TS+Tailwind+Server Actions.
 - **Entregables:** repo, README, DECISIONS.md, tests.
-
-*(Detalle en `zzz/SPEC.pdf`.)*

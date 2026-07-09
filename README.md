@@ -238,7 +238,6 @@ cd backend-express && npm run seed && npm run test:run
 - Búsqueda/orden server-side en frontend con skeleton optimista
 - Endpoint audit: responder JSON array directo (sin `JSON.stringify`)
 - Feedback de errores de formulario más rico
-- Lock pesimista vs optimistic locking (ver nota en DECISIONS)
 
 ---
 
@@ -247,4 +246,3 @@ cd backend-express && npm run seed && npm run test:run
 - `DECISIONS.md` — decisiones de diseño (incluye testing)
 - `frontend/README.md` — resumen del frontend
 - `INPUT.md` — historial de instrucciones
-- `zzz/SPEC.pdf` — especificación del challenge

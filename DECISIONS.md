@@ -108,7 +108,13 @@ Estados y KPIs traducidos; tipos de obligación no.
 
 ## Optimistic locking
 
-Las ventajas del **optimistic locking** no parecen relevantes en este contexto, dada la **sensibilidad de los datos** del dominio. Priorizaría consistencia transaccional (update + audit en la misma transacción). Las operaciones críticas **ya corren en transacción**; el lock optimista queda como complejidad a evaluar.
+**Decisión:** el **optimistic locking** es el enfoque más adecuado para este dominio.
+
+**Motivo:**
+- Las **lecturas son mucho más frecuentes** que las escrituras (listados, detalle, dashboard).
+- Con **lock pesimista**, habría que bloquear el acceso a una obligación mientras otro usuario la está mirando, lo que sería una **experiencia de usuario muy pobre**.
+- El optimistic locking permite lecturas concurrentes sin bloqueos; solo detecta conflictos en el momento de escribir (campo `version` → `409 SynchError` si la obligación cambió entre lectura y update).
+- Las operaciones críticas **ya corren en transacción** (update + audit en la misma transacción Sequelize).
 
 ---
 
