@@ -18,4 +18,5 @@
 
 - [ ] Búsqueda/orden server-side con skeleton optimista (Redux se mantiene)
 - [ ] Feedback de errores de formulario más detallado (toast parseado del backend)
-- [x] Tests (ver [README § Testing](../README.md#testing))
+- [x] Tests unitarios/componentes (ver [README § Testing](../README.md#testing))
+- [x] E2E Playwright — flujo UX (`npm run test:e2e`)

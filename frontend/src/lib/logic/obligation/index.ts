@@ -17,12 +17,14 @@ export type {
 
 export { ObligationLogic, HttpObligationsClient, MockObligationsClient };
 
-let client: ObligationsClient | null = null;
+const globalForClient = globalThis as typeof globalThis & {
+  lazoObligationClient?: ObligationsClient;
+};
 
 export function getObligationClient(): ObligationsClient {
-  if (!client) {
+  if (!globalForClient.lazoObligationClient) {
     const logic = new ObligationLogic();
-    client =
+    globalForClient.lazoObligationClient =
       process.env.USE_MOCK_DATA === "true"
         ? new MockObligationsClient(logic)
         : new HttpObligationsClient(
@@ -30,5 +32,5 @@ export function getObligationClient(): ObligationsClient {
             logic,
           );
   }
-  return client;
+  return globalForClient.lazoObligationClient;
 }

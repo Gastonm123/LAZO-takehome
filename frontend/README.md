@@ -71,11 +71,13 @@ Ver [TODOS.md](./TODOS.md).
 
 ## Testing
 
-Vitest + Testing Library. Detalle en [README.md § Testing](../README.md#testing).
+Vitest + Testing Library (unit/componentes) y Playwright (E2E UX). Detalle en [README.md § Testing](../README.md#testing).
 
 ```bash
-npm run test:run
-npm run test    # watch
+npm run test:run          # Vitest
+npm run test              # Vitest watch
+npm run test:e2e          # Playwright (mock, sin backend)
+npm run test:e2e:ui       # Playwright UI mode
 ```
 
 | Archivo | Cubre |
@@ -84,7 +86,10 @@ npm run test    # watch
 | `MockObligationsClient.test.ts` | CRUD mock sin red |
 | `transitionActions.test.ts` | Botones de transición |
 | `StateBadge.test.tsx` | Badge + i18n mock |
+| `e2e/ux-flow.spec.ts` | Flujo UX: dashboard, listado, detalle, transición, alta, edición, i18n |
 
-Importar clases concretas en tests, no `lib/logic/obligation/index.ts` (`server-only`).
+Importar clases concretas en tests unitarios, no `lib/logic/obligation/index.ts` (`server-only`).
+
+Primera vez con E2E: `npx playwright install chromium`.
 
 ---
