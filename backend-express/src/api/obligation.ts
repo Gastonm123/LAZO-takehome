@@ -103,22 +103,24 @@ class Obligation {
                 await this.obligation.save({ transaction });
                 const updatedAt = this.obligation.updatedAt!;
 
-                for (const [field, value] of Object.entries(attributes)) {
-                    if (!fieldChanged(pre[field], value)) {
-                        continue;
-                    }
+                const _attributes = attributes as Record<string,unknown>;
+                const changes = Object.keys(_attributes)
+                    .map(field => {
+                        const value = _attributes[field];
+                        if (!fieldChanged(pre[field], value)) {
+                            return null;
+                        }
 
-                    await ObligationAudit.create(
-                        this.obligationId,
-                        ObligationAuditSchema.parse({
-                            field,
+                        return {
+                            field: field,
                             from: serializeAuditValue(pre[field]),
                             to: serializeAuditValue(value),
-                            date: updatedAt,
-                        }),
-                        transaction,
-                    );
-                }
+                            date: updatedAt
+                        };
+                    })
+                    .filter((change) => (change !== null));
+
+                await ObligationAudit.bulkCreate(this.obligationId, changes, transaction);
             });
         } catch (error) {
             if (error instanceof OptimisticLockError) {
@@ -213,22 +215,25 @@ class Obligation {
                     { transaction },
                 );
 
-                for (const [field, value] of Object.entries(attributes)) {
-                    if (value === "" || value == null) {
-                        continue;
-                    }
+                const _attributes = attributes as Record<string,unknown>;
+                const changes = Object.keys(_attributes)
+                    .map(field => {
+                        const sanitized = serializeAuditValue(_attributes[field]);
+                        if (sanitized === "") {
+                            return null;
+                        }
 
-                    await ObligationAudit.create(
-                        ObligationId.parse(row.id),
-                        ObligationAuditSchema.parse({
-                            field,
+                        return {
+                            field: field,
                             from: "",
-                            to: serializeAuditValue(value),
+                            to: sanitized,
                             date: row.updatedAt!,
-                        }),
-                        transaction,
-                    );
-                }
+                        };
+                    })
+                    .filter((change) => (change !== null));
+
+                const obligationId = ObligationId.parse(row.id);
+                await ObligationAudit.bulkCreate(obligationId, changes, transaction);
 
                 return ObligationId.parse(row.id);
             });

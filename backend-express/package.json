@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "tsx src/server.ts",
+    "dev": "tsx src/server.ts",
     "seed": "tsx src/seeder.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
