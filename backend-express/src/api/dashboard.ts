@@ -7,9 +7,7 @@ type DashboardSummary = z.infer<typeof DashboardSchema>;
 
 class Dashboard {
     static async summary(): Promise<DashboardSummary> {
-        const all = await ObligationModel.findAll({
-            attributes: ["id", "dueDate", "state"],
-        });
+        const all = await ObligationModel.findAll();
         const total = all.length;
         const overdue = all.filter((ob) => ObligationLogic.isOverdue(ob)).length;
         const upcomingDue = all.filter((ob) =>
