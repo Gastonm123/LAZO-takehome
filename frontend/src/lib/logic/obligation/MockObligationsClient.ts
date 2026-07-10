@@ -1,4 +1,7 @@
-import { ObligationLogic } from "./ObligationLogic";
+import {
+  ObligationCreateFromFormSchema,
+  ObligationUpdateFromFormSchema,
+} from "@/schemas/obligationUiSchema";
 import {
   ObligationsClient,
   type DashboardSummary,
@@ -35,7 +38,7 @@ export class MockObligationsClient extends ObligationsClient {
   private readonly store: Obligation[];
   private readonly audits: Record<string, ObligationAudit[]>;
 
-  constructor(private readonly logic: ObligationLogic) {
+  constructor() {
     super();
     this.store = [
       {
@@ -142,7 +145,7 @@ export class MockObligationsClient extends ObligationsClient {
   }
 
   async create(input: ObligationFormValues): Promise<string> {
-    this.logic.buildCreateBody(input);
+    ObligationCreateFromFormSchema.parse(input);
     const id = String(
       this.store.reduce((max, item) => Math.max(max, Number(item.id)), 0) + 1,
     );
@@ -150,26 +153,26 @@ export class MockObligationsClient extends ObligationsClient {
     const dueDate = new Date(input.dueDate).toISOString();
 
     this.store.push({
-        id,
-        type: input.type,
-        title: input.title,
-        description: input.description,
-        state: "pending",
-        dueDate,
-        owner: input.owner,
-        requiresDocument: input.requiresDocument,
-        documentUrl: input.requiresDocument ? input.documentUrl : null,
-        companyTaxId: maskTaxId(input.companyTaxId),
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        overdue: false,
-      });
+      id,
+      type: input.type,
+      title: input.title,
+      description: input.description,
+      state: "pending",
+      dueDate,
+      owner: input.owner,
+      requiresDocument: input.requiresDocument,
+      documentUrl: input.requiresDocument ? input.documentUrl : null,
+      companyTaxId: maskTaxId(input.companyTaxId),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      overdue: false,
+    });
 
     return id;
   }
 
   async update(id: string, input: ObligationFormValues): Promise<ObligationDetail> {
-    this.logic.buildUpdateBody(input);
+    ObligationUpdateFromFormSchema.parse(input);
     const index = this.store.findIndex((item) => item.id === id);
     if (index === -1) {
       throw new Error("Obligation not found");

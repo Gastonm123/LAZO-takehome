@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { MockObligationsClient } from "@/lib/logic/obligation/MockObligationsClient";
-import { ObligationLogic } from "@/lib/logic/obligation/ObligationLogic";
 
 describe("MockObligationsClient", () => {
-  const client = new MockObligationsClient(new ObligationLogic());
+  const client = new MockObligationsClient();
 
   it("lists obligations with overdue computed", async () => {
     const list = await client.list();

@@ -1,10 +1,8 @@
 # Frontend — LAZO
 
-Resumen del frontend activo. Detalle completo en [README.md](../README.md) y decisiones en [DECISIONS.md](../DECISIONS.md).
-
-## Stack
-
 Next.js 15 · React 19 · Tailwind · Redux (search/sort) · Server Actions · Zod · i18n ES/EN
+
+Decisiones: [DECISIONS.md](../DECISIONS.md). Setup full-stack y testing: [README.md](../README.md).
 
 ## Arranque
 
@@ -25,26 +23,31 @@ NEXT_PUBLIC_DEFAULT_LOCALE=es
 ```
 Server Actions (src/actions/obligations.ts)
         ↓
-getObligationClient()
+getObligationClient()   // singleton en globalThis
         ↓
 ┌───────────────────────┬────────────────────────┐
-│ HttpObligationsClient │ MockObligationsClient    │
-└───────────┬───────────┴────────────┬─────────────┘
-            └──────── ObligationLogic ─┘
-                      (overdue, Zod, audit)
+│ HttpObligationsClient │ MockObligationsClient  │
+└───────────┬───────────┴────────────┬───────────┘
+            └──── schemas Zod ────────┘
+                  wire → UI / form
 ```
 
-- **Schemas:** `src/schemas/` (copia del backend)
-- **Dominio / API:** `src/lib/logic/obligation/`
-- **UI:** `src/components/`, `src/app/`
-- **Sin** capa repository ni `fetch` en el cliente
+| Capa | Ubicación | Rol |
+|------|-----------|-----|
+| Wire | `obligationSchema.ts`, `obligationAuditSchema.ts` | Contrato HTTP (copia backend) |
+| UI | `obligationUiSchema.ts`, `dashboardSchema.ts` | Normalización post-parse (`*UiSchema`) |
+| Formularios | `*FromFormSchema`, `zodUtils.ts` | Validación submit, trim, PATCH parcial |
+| Clientes | `src/lib/logic/obligation/` | HTTP o mock; sin lógica de dominio duplicada |
+| UI | `src/components/`, `src/app/` | Presentación; sin `fetch` en browser |
+
+No hay capa repository ni clase `ObligationLogic` en el frontend (el dominio vive en el backend).
 
 ## Rutas
 
 | Ruta | Contenido |
 |------|-----------|
 | `/` | Dashboard |
-| `/obligations` | Listado + búsqueda/orden |
+| `/obligations` | Listado + búsqueda/orden (Redux, client-side) |
 | `/obligations/new` | Crear |
 | `/obligations/[id]` | Detalle + audit + transiciones |
 | `/obligations/[id]/edit` | Editar |
@@ -61,35 +64,19 @@ getObligationClient()
 
 - Campo **`state`** (no `status`); botones vía `NEXT_STATES` + `TRANSITION_ACTIONS`
 - Validación de negocio en backend; botones siempre habilitados
-- Audit agrupado por fecha; descripción como textarea (solo lectura) en detalle
-- Tipo editable como texto libre en formulario
-- Tax ID: placeholder enmascarado en edición; valor vacío no se envía en PATCH
+- Audit: array JSON directo; agrupado por fecha ISO; tax id enmascarado en audit
+- Formulario: textarea descripción; tipo texto libre; tax id placeholder en edición; vacíos omitidos en PATCH
+- Parse Zod fallido en detalle → `notFound()`; mutaciones → toast con error
+
+## Testing
+
+Comandos y listado de archivos: [README.md § Testing](../README.md#testing).
+
+```bash
+npm run test:run
+npm run test:e2e          # Playwright, USE_MOCK_DATA=true, puerto 3001
+```
 
 ## Pendiente
 
 Ver [TODOS.md](./TODOS.md).
-
-## Testing
-
-Vitest + Testing Library (unit/componentes) y Playwright (E2E UX). Detalle en [README.md § Testing](../README.md#testing).
-
-```bash
-npm run test:run          # Vitest
-npm run test              # Vitest watch
-npm run test:e2e          # Playwright (mock, sin backend)
-npm run test:e2e:ui       # Playwright UI mode
-```
-
-| Archivo | Cubre |
-|---------|--------|
-| `ObligationLogic.test.ts` | Overdue, audit, payloads Zod |
-| `MockObligationsClient.test.ts` | CRUD mock sin red |
-| `transitionActions.test.ts` | Botones de transición |
-| `StateBadge.test.tsx` | Badge + i18n mock |
-| `e2e/ux-flow.spec.ts` | Flujo UX: dashboard, listado, detalle, transición, alta, edición, i18n |
-
-Importar clases concretas en tests unitarios, no `lib/logic/obligation/index.ts` (`server-only`).
-
-Primera vez con E2E: `npx playwright install chromium`.
-
----

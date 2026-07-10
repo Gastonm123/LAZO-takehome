@@ -1,5 +1,5 @@
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import TranslatedLoadingSpinner from "@/components/ui/TranslatedLoadingSpinner";
 
 export default function Loading() {
-  return <LoadingSpinner label="Cargando..." />;
+  return <TranslatedLoadingSpinner />;
 }

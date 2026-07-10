@@ -1,69 +1,36 @@
-import { DashboardSchema } from "@/schemas/dashboardSchema";
+import { DashboardUiSchema } from "@/schemas/dashboardSchema";
+import { ObligationAuditListSchema } from "@/schemas/obligationAuditSchema";
 import {
-  ObligationChangeState,
-  ObligationPublicSchema,
-} from "@/schemas/obligationSchema";
-import { ObligationLogic } from "./ObligationLogic";
+  ObligationCreateFromFormSchema,
+  ObligationUiSchema,
+  ObligationUpdateFromFormSchema,
+} from "@/schemas/obligationUiSchema";
+import { ObligationChangeState } from "@/schemas/obligationSchema";
+import { HttpClient } from "../base/HttpClient";
 import {
   ObligationsClient,
-  type DashboardSummary,
   type ObligationDetail,
   type ObligationFormValues,
   type ObligationState,
 } from "./types";
 
 export class HttpObligationsClient extends ObligationsClient {
-  constructor(
-    private readonly apiUrl: string,
-    private readonly logic: ObligationLogic,
-  ) {
+  constructor(private readonly httpClient: HttpClient) {
     super();
   }
 
-  private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(`${this.apiUrl}${path}`, {
-      ...init,
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers ?? {}),
-      },
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(message || `Backend error ${response.status}`);
-    }
-
-    if (response.status === 204) {
-      return undefined as T;
-    }
-
-    return response.json() as Promise<T>;
+  private async request<Result>(path: string, init?: RequestInit): Promise<Result> {
+    return this.httpClient.request<Result>(path, init);
   }
 
-  async getDashboard(): Promise<DashboardSummary> {
+  async getDashboard() {
     const raw = await this.request<unknown>("/dashboard/summary");
-    const parsed = DashboardSchema.parse(raw);
-    return {
-      total: parsed.total,
-      overdue: parsed.overdue,
-      upcomingDue: parsed.upcomingDue,
-      pending: parsed.pending,
-      inProgress: parsed.inProgress,
-      submitted: parsed.submitted,
-      done: parsed.done,
-      upcomingObligations: parsed.upcomingObligations.map((row) =>
-        this.logic.fromPublic(row),
-      ),
-    };
+    return DashboardUiSchema.parse(raw);
   }
 
   async list() {
     const rows = await this.request<unknown[]>("/obligations");
-    return rows.map((row) =>
-      this.logic.fromPublic(ObligationPublicSchema.parse(row)),
-    );
+    return rows.map((row) => ObligationUiSchema.parse(row));
   }
 
   async getById(id: string): Promise<ObligationDetail> {
@@ -73,13 +40,13 @@ export class HttpObligationsClient extends ObligationsClient {
     ]);
 
     return {
-      ...this.logic.fromPublic(ObligationPublicSchema.parse(obligationRaw)),
-      auditTrail: this.logic.parseAudit(auditRaw),
+      ...ObligationUiSchema.parse(obligationRaw),
+      auditTrail: ObligationAuditListSchema.parse(auditRaw),
     };
   }
 
   async create(input: ObligationFormValues): Promise<string> {
-    const body = this.logic.buildCreateBody(input);
+    const body = ObligationCreateFromFormSchema.parse(input);
     const result = await this.request<{ obligationId: number }>("/obligations", {
       method: "POST",
       body: JSON.stringify(body),
@@ -88,14 +55,16 @@ export class HttpObligationsClient extends ObligationsClient {
   }
 
   async update(id: string, input: ObligationFormValues): Promise<ObligationDetail> {
-    const body = this.logic.buildUpdateBody(input);
+    const body = ObligationUpdateFromFormSchema.parse(input);
     const raw = await this.request<unknown>(`/obligations/${id}`, {
       method: "PATCH",
       body: JSON.stringify(body),
     });
-    const obligation = this.logic.fromPublic(ObligationPublicSchema.parse(raw));
     const auditRaw = await this.request<unknown>(`/obligations/${id}/audit`);
-    return { ...obligation, auditTrail: this.logic.parseAudit(auditRaw) };
+    return {
+      ...ObligationUiSchema.parse(raw),
+      auditTrail: ObligationAuditListSchema.parse(auditRaw),
+    };
   }
 
   async delete(id: string): Promise<void> {
@@ -108,8 +77,10 @@ export class HttpObligationsClient extends ObligationsClient {
       method: "POST",
       body: JSON.stringify({ state }),
     });
-    const obligation = this.logic.fromPublic(ObligationPublicSchema.parse(raw));
     const auditRaw = await this.request<unknown>(`/obligations/${id}/audit`);
-    return { ...obligation, auditTrail: this.logic.parseAudit(auditRaw) };
+    return {
+      ...ObligationUiSchema.parse(raw),
+      auditTrail: ObligationAuditListSchema.parse(auditRaw),
+    };
   }
 }
