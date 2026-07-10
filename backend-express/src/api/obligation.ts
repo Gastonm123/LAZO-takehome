@@ -70,7 +70,7 @@ class Obligation {
         const row = await ObligationModel.findByPk(obligationId);
         if (row === null) {
             throw new NotFoundError(
-                `No se encontro la obligacion ${obligationId}`,
+                `Obligation ${obligationId} not found`,
             );
         }
         obj.obligation = row;
@@ -82,9 +82,9 @@ class Obligation {
         // console.log(this.obligation);
         const publicSchema = Obligation.toPublicSchema(this.obligation);
         if (publicSchema === null) {
-            logger.error(`API: error leyendo la obligacion ${this.obligationId}`)
+            logger.error(`API: failed to read obligation ${this.obligationId}`)
             throw new Error(
-                `No es posible leer la obligacion ${this.obligationId}`,
+                `Unable to read obligation ${this.obligationId}`,
             );
         }
         return publicSchema;
@@ -124,9 +124,9 @@ class Obligation {
             });
         } catch (error) {
             if (error instanceof OptimisticLockError) {
-                throw new SynchError("La obligacion esta desincronizada");
+                throw new SynchError("Obligation is out of sync");
             }
-            logger.error(`API: error actualizando obligacion ${this.obligationId}`)
+            logger.error(`API: failed to update obligation ${this.obligationId}`)
             throw error;
         }
     }
@@ -144,11 +144,11 @@ class Obligation {
     async transitionState(state: ObligationStateType): Promise<void> {
         const from = ObligationState.safeParse(this.obligation.state);
         if (!from.success) {
-            logger.error(`API: Error de parseo de la obligacion ${this.obligation.id}`);
+            logger.error(`API: obligation parse error ${this.obligation.id}`);
             throw from.error;
         }
         if (!ObligationLogic.validateTransition(this.obligation, from.data, state)) {
-            throw new InvalidCall("Transicion Invalida");
+            throw new InvalidCall("Invalid transition");
         }
 
         const previousState = from.data;
@@ -171,9 +171,9 @@ class Obligation {
             });
         } catch (error) {
             if (error instanceof OptimisticLockError) {
-                throw new SynchError("La obligacion esta desincronizada");
+                throw new SynchError("Obligation is out of sync");
             }
-            logger.error(`API: error cambiando estado de obligacion ${this.obligationId}`)
+            logger.error(`API: failed to transition obligation ${this.obligationId}`)
             throw error;
         }
     }
@@ -194,7 +194,7 @@ class Obligation {
                 }
             const parsed = ObligationAuditPublicSchema.safeParse(publicAudit);
             if (!parsed.success) {
-                console.error(`API: error parseando audit:\n${audit.get({ plain: true })}`)
+                console.error(`API: audit parse error:\n${audit.get({ plain: true })}`)
                 throw parsed.error;
             }
             return parsed.data;
@@ -247,7 +247,7 @@ class Obligation {
             });
         } catch (error) {
             if (error instanceof ValidationError) {
-                logger.error("API: error de validacion")
+                logger.error("API: validation error")
                 error.errors.forEach(e => logger.error(e))
             }
             // console.log(error);
@@ -276,14 +276,14 @@ class Obligation {
         };
         const parsed = ObligationPublicSchema.safeParse(ob);
         if (!parsed.success) {
-            logger.error(`API: Error de parseo de la obligacion ${obligation.id}`);
+            logger.error(`API: obligation parse error ${obligation.id}`);
             return null;
         }
         return parsed.data;
     }
 }
 
-/* Clase de logicca separada de la base de datos y HTTP
+/* Logic class separated from database and HTTP
  */
 class ObligationLogic {
     static validateUpdate(

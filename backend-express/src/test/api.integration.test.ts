@@ -77,3 +77,61 @@ describe.skipIf(() => !dbAvailable)("API integration", () => {
         expect(response.status).toBe(400);
     });
 });
+
+/**
+ * Invariante doc-gated (backend): ver obligation.logic.test.ts — "Invariante doc-gated".
+ */
+describe.skipIf(() => !dbAvailable)("Invariante doc-gated (HTTP)", () => {
+    it("rejects transition to submitted when document is required but missing", async () => {
+        const created = await request(app)
+            .post("/api/v1/obligations")
+            .send({
+                type: "doc_gated_test",
+                title: "Doc-gated transition test",
+                description: "Integration test obligation",
+                owner: "QA",
+                dueDate: "2026-12-31",
+                companyTaxId: "99-9999999",
+                requiresDocument: true,
+                documentUrl: null,
+            });
+
+        expect(created.status).toBe(200);
+        const id = created.body.obligationId;
+
+        const toProgress = await request(app)
+            .post(`/api/v1/obligations/${id}/transitions`)
+            .send({ state: "in_progress" });
+        expect(toProgress.status).toBe(200);
+
+        const toSubmitted = await request(app)
+            .post(`/api/v1/obligations/${id}/transitions`)
+            .send({ state: "submitted" });
+
+        expect(toSubmitted.status).toBe(400);
+        expect(toSubmitted.body.message).toMatch(/invalid transition/i);
+    });
+
+    it("rejects documentUrl change while submitted", async () => {
+        const response = await request(app)
+            .patch("/api/v1/obligations/3")
+            .send({
+                requiresDocument: true,
+                documentUrl: "/mock/tampered.pdf",
+            });
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toMatch(/mutation/i);
+    });
+
+    it("rejects requiresDocument change while done", async () => {
+        const response = await request(app)
+            .patch("/api/v1/obligations/4")
+            .send({
+                requiresDocument: true,
+            });
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toMatch(/mutation/i);
+    });
+});

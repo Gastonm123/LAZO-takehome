@@ -110,7 +110,10 @@ pending → in_progress → submitted → done
 | `done` | `in_progress` |
 
 - Transición inválida → `400 InvalidCall`.
-- Pasar a `submitted` con `requiresDocument: true` exige `documentUrl` → `400` si falta.
+
+### Invariante doc-gated
+
+No se puede pasar al estado `submitted` si `requiresDocument: true` y no se cargó ningún documento. Para preservar la invariante, una vez que el documento se encuentra `submitted` o `done`, no es posible cambiar `requiresDocument` o `documentUrl`.
 
 ### Overdue
 

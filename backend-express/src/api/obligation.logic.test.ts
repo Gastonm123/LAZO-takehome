@@ -69,51 +69,118 @@ describe("ObligationLogic.validateTransition", () => {
             ),
         ).toBe(false);
     });
-
-    it("rejects submitted without document when required", () => {
-        expect(
-            ObligationLogic.validateTransition(
-                mockObligation({
-                    requiresDocument: true,
-                    documentUrl: null,
-                }),
-                "in_progress",
-                "submitted",
-            ),
-        ).toBe(false);
-    });
-
-    it("allows submitted when document is present", () => {
-        expect(
-            ObligationLogic.validateTransition(
-                mockObligation({
-                    requiresDocument: true,
-                    documentUrl: "https://example.com/doc.pdf",
-                }),
-                "in_progress",
-                "submitted",
-            ),
-        ).toBe(true);
-    });
 });
 
-describe("ObligationLogic.validateUpdate", () => {
-    it("rejects requiresDocument true without documentUrl", () => {
-        expect(
-            ObligationLogic.validateUpdate(mockObligation(), {
-                requiresDocument: true,
-                documentUrl: null,
-            }),
-        ).toBe(false);
+/**
+ * Invariante doc-gated (backend):
+ * - No se puede pasar a `submitted` si `requiresDocument: true` y no hay documento cargado.
+ * - En `submitted` o `done` no se puede cambiar `requiresDocument` ni `documentUrl`.
+ */
+describe("Invariante doc-gated", () => {
+    describe("validateTransition — envío sin documento", () => {
+        it.each([
+            { documentUrl: null, label: "null" },
+            { documentUrl: "", label: "empty string" },
+        ])(
+            "rejects in_progress → submitted when document is required and url is $label",
+            ({ documentUrl }) => {
+                expect(
+                    ObligationLogic.validateTransition(
+                        mockObligation({
+                            requiresDocument: true,
+                            documentUrl,
+                        }),
+                        "in_progress",
+                        "submitted",
+                    ),
+                ).toBe(false);
+            },
+        );
+
+        it("allows in_progress → submitted when document is present", () => {
+            expect(
+                ObligationLogic.validateTransition(
+                    mockObligation({
+                        requiresDocument: true,
+                        documentUrl: "https://example.com/doc.pdf",
+                    }),
+                    "in_progress",
+                    "submitted",
+                ),
+            ).toBe(true);
+        });
+
+        it("allows in_progress → submitted when document is not required", () => {
+            expect(
+                ObligationLogic.validateTransition(
+                    mockObligation({
+                        requiresDocument: false,
+                        documentUrl: null,
+                    }),
+                    "in_progress",
+                    "submitted",
+                ),
+            ).toBe(true);
+        });
     });
 
-    it("accepts update with document when required", () => {
-        expect(
-            ObligationLogic.validateUpdate(mockObligation(), {
-                requiresDocument: true,
-                documentUrl: "https://example.com/doc.pdf",
-            }),
-        ).toBe(true);
+    describe("validateUpdate — campos de documento bloqueados", () => {
+        describe.each(["submitted", "done"] as const)("state %s", (state) => {
+            it("rejects requiresDocument change", () => {
+                expect(
+                    ObligationLogic.validateUpdate(
+                        mockObligation({
+                            state,
+                            requiresDocument: true,
+                            documentUrl: "/mock/doc.pdf",
+                        }),
+                        { requiresDocument: false },
+                    ),
+                ).toBe(false);
+            });
+
+            it("rejects documentUrl change", () => {
+                expect(
+                    ObligationLogic.validateUpdate(
+                        mockObligation({
+                            state,
+                            requiresDocument: true,
+                            documentUrl: "/mock/a.pdf",
+                        }),
+                        { documentUrl: "/mock/b.pdf", requiresDocument: true },
+                    ),
+                ).toBe(false);
+            });
+
+            it("allows updating unrelated fields", () => {
+                expect(
+                    ObligationLogic.validateUpdate(
+                        mockObligation({
+                            state,
+                            requiresDocument: true,
+                            documentUrl: "/mock/doc.pdf",
+                        }),
+                        { title: "Updated title", "requiresDocument": true },
+                    ),
+                ).toBe(true);
+            });
+        });
+
+        it("allows document field changes while in_progress", () => {
+            expect(
+                ObligationLogic.validateUpdate(
+                    mockObligation({
+                        state: "in_progress",
+                        requiresDocument: false,
+                        documentUrl: null,
+                    }),
+                    {
+                        requiresDocument: true,
+                        documentUrl: "https://example.com/doc.pdf",
+                    },
+                ),
+            ).toBe(true);
+        });
     });
 });
 
