@@ -10,7 +10,7 @@ import {
     ObligationCreate,
     ObligationUpdate,
 } from "../schemas/obligationSchema.js";
-import { ObligationAuditSchema } from "../schemas/obligationAuditSchema.js";
+import { ObligationAuditPublicSchema, ObligationAuditSchema } from "../schemas/obligationAuditSchema.js";
 import z from "zod";
 import { OptimisticLockError, ValidationError } from "sequelize";
 import { logger } from "../lib/logging.js";
@@ -20,11 +20,11 @@ import { ObligationAudit } from "./obligationAudit.js";
 type ObligationStateType = z.infer<typeof ObligationState>;
 type ObligationCreateType = z.infer<typeof ObligationCreate>;
 type ObligationUpdateType = z.infer<typeof ObligationUpdate>;
-type ObligationSearchType = z.infer<typeof ObligationSearch>;
+// type ObligationSearchType = z.infer<typeof ObligationSearch>;
 type MaskedTaxIdType = z.infer<typeof MaskedTaxId>;
 type ObligationPublicSchemaType = z.infer<typeof ObligationPublicSchema>;
-type ObligationAuditSchemaType = z.infer<typeof ObligationAuditSchema>;
 type ObligationIdType = z.infer<typeof ObligationId>;
+type ObligationAuditPublicSchemaType = z.infer<typeof ObligationAuditPublicSchema>;
 
 const ALLOWED_TRANSITIONS: Record<
     ObligationStateType,
@@ -178,16 +178,23 @@ class Obligation {
         }
     }
 
-    async getAuditTrail(): Promise<ObligationAuditSchemaType[]> {
+    async getAuditTrail(): Promise<ObligationAuditPublicSchemaType[]> {
         const audits = await ObligationAuditModel.findAll({
             where: { obligationId: this.obligationId },
             order: [["date", "ASC"]],
         });
 
         return audits.map((audit) => {
-            const parsed = ObligationAuditSchema.safeParse(audit);
+            const publicAudit = 
+                audit.field !== "companyTaxId" ? audit :
+                {   field: "companyTaxId",
+                    from: maskTaxId(audit.from),
+                    to: maskTaxId(audit.to),
+                    date: audit.date
+                }
+            const parsed = ObligationAuditPublicSchema.safeParse(publicAudit);
             if (!parsed.success) {
-                console.error(`API: error parseando audit:\n${JSON.stringify(audit.get({ plain: true }))}`)
+                console.error(`API: error parseando audit:\n${audit.get({ plain: true })}`)
                 throw parsed.error;
             }
             return parsed.data;
@@ -250,8 +257,8 @@ class Obligation {
         }
     }
 
+    // attributes: ObligationSearchType,
     static async search(
-        attributes: ObligationSearchType,
     ): Promise<Array<ObligationPublicSchemaType>> {
         const obligations = await ObligationModel.findAll();
         return obligations
@@ -283,15 +290,15 @@ class ObligationLogic {
         obligation: ObligationModel,
         attributes: ObligationCreateType | ObligationUpdateType,
     ): boolean {
-        const requiresDocument =
-            attributes.requiresDocument ?? obligation.requiresDocument;
-        const documentUrl =
-            attributes.documentUrl !== undefined
-                ? attributes.documentUrl
-                : obligation.documentUrl;
-
-        if (requiresDocument && (documentUrl === null || documentUrl === undefined || documentUrl === "")) {
-            return false;
+        if (obligation.state === "done" || obligation.state === "submitted") {
+            const requiresDocument =
+                attributes.requiresDocument ?? obligation.requiresDocument;
+            const documentUrl =
+                attributes.documentUrl ?? obligation.documentUrl;
+            if (fieldChanged(requiresDocument, obligation.requiresDocument) ||
+                fieldChanged(documentUrl, obligation.documentUrl)) {
+                return false;
+            }
         }
 
         return true;

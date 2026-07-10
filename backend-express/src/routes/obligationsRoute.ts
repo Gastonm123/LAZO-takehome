@@ -20,10 +20,12 @@ router.get(
             order: req.query.order ?? "dueDate",
             direction: req.query.direction ?? "ASC",
         });
-        if (!attributes.success) {
-            throw new InvalidCall("Invalid search");
-        }
-        res.json(await Obligation.search(attributes.data));
+        // if (!attributes.success) {
+        //     throw new InvalidCall("Invalid search");
+        // }
+        // res.json(await Obligation.search(attributes.data));
+        // get all obligations for now
+        res.json(await Obligation.search());
     }),
 );
 
@@ -101,7 +103,7 @@ router.get(
         }
         const obligation = await Obligation.init(id.data);
         const auditTrail = await obligation.getAuditTrail();
-        res.json(JSON.stringify(auditTrail));
+        res.json(auditTrail);
     }),
 )
 export default router;
