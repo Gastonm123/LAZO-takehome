@@ -1,6 +1,6 @@
 import express from "express";
 import asyncHandler from "../middleware/asyncHandler.js";
-import { Dashboard } from "@/api/dashboard.js";
+import { Dashboard } from "../api/dashboard.js";
 
 const router = express.Router();
 

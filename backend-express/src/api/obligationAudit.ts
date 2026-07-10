@@ -1,7 +1,7 @@
 import z from "zod";
 import { ObligationAuditSchema } from "../schemas/obligationAuditSchema.js";
 import ObligationAuditModel from "../models/obligationAudit.js";
-import { ObligationId } from "@/schemas/obligationSchema.js";
+import { ObligationId } from "../schemas/obligationSchema.js";
 import type { Transaction } from "sequelize";
 
 type ObligationAuditType = z.infer<typeof ObligationAuditSchema>;

@@ -6,7 +6,7 @@ API REST para el **Compliance Obligations Tracker**. Setup full-stack: [README.m
 
 Express · TypeScript (`tsx`) · Sequelize · PostgreSQL · Zod · Vitest · Supertest
 
-## Arranque
+## Arranque (desarrollo)
 
 ```bash
 cp .env.example .env
@@ -15,6 +15,15 @@ docker compose -f ../database/compose.yml up -d   # desde la raíz del repo
 npm run seed
 npm run dev    # http://localhost:5000/api/v1
 ```
+
+### Produccion
+
+```bash
+npm run build
+npm start      # node dist/server.js
+```
+
+Requiere `.env` y Postgres (igual que desarrollo). Usar `NODE_ENV=production`.
 
 ### Variables de entorno (`.env`)
 
@@ -37,7 +46,8 @@ npm run dev    # http://localhost:5000/api/v1
 | `npm run test` | Vitest en modo watch |
 | `npm run test:run` | Vitest una sola pasada |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm run lint` | ESLint |
+| `npm run build` | Compila TypeScript a `dist/` |
+| `npm start` | Servidor de produccion (`node dist/server.js`; correr `build` antes) |
 
 ## Estructura
 

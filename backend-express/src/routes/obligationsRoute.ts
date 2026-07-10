@@ -7,8 +7,8 @@ import {
     ObligationSearch,
     ObligationState,
     ObligationUpdate,
-} from "@/schemas/obligationSchema.js";
-import { InvalidCall } from "@/lib/errors.js";
+} from "../schemas/obligationSchema.js";
+import { InvalidCall } from "../lib/errors.js";
 
 const router = express.Router();
 
