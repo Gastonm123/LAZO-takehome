@@ -8,8 +8,11 @@ Sistema full-stack para seguir obligaciones de compliance: API Express + Postgre
 | Frontend | `frontend/` | `3000` |
 | Base de datos | `database/compose.yml` | Postgres `5432` |
 
-Documentación de decisiones: [DECISIONS.md](DECISIONS.md).  
-Resumen del frontend: [frontend/README.md](frontend/README.md).
+| Documento | Contenido |
+|-----------|-----------|
+| [DECISIONS.md](DECISIONS.md) | Decisiones de diseño |
+| [backend-express/README.md](backend-express/README.md) | API, dominio, errores, tests backend |
+| [frontend/README.md](frontend/README.md) | Arquitectura UI, rutas, reglas de presentación |
 
 ## Tiempo invertido
 
@@ -17,7 +20,7 @@ Este trabajo se realizó en **8 horas**.
 
 ---
 
-## Puesta en marcha (completo)
+## Puesta en marcha
 
 ```bash
 # 1. Base de datos
@@ -45,222 +48,92 @@ USE_MOCK_DATA=false
 NEXT_PUBLIC_DEFAULT_LOCALE=es
 ```
 
-Con `USE_MOCK_DATA=true` el frontend usa datos en memoria sin backend.
+Con `USE_MOCK_DATA=true` el frontend usa datos en memoria sin backend (útil para desarrollo y E2E).
 
 ---
 
-## Backend (`backend-express/`)
+## Backend
 
-### Stack
+Express + Sequelize + PostgreSQL + Zod. Dominio en `ObligationLogic`, API en `/api/v1`.
 
-- **Express** + **TypeScript** (`tsx`)
-- **Sequelize** + **PostgreSQL**
-- **Zod** en el límite HTTP
-- Capas: rutas → API de dominio (`Obligation`, `ObligationLogic`) → modelos ORM
-
-### Estructura
-
-```
-backend-express/src/
-├── api/              # dominio: obligation, obligationAudit, dashboard
-├── routes/           # HTTP: /dashboard, /obligations
-├── models/           # Sequelize
-├── schemas/          # Zod (contrato API)
-├── middleware/       # asyncHandler, errorHandler
-├── lib/              # orm, errors, logging
-├── data/             # mockups para seeder
-├── seeder.ts
-└── server.ts
-```
-
-Imports ESM con extensión `.js`. Alias `@/` resuelto por `tsx`.
-
-### API (`/api/v1`)
-
-#### Dashboard
-
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| `GET` | `/dashboard/summary` | KPIs + hasta 10 próximos vencimientos |
-
-#### Obligations
-
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| `GET` | `/obligations` | Lista (`search`, `order`, `direction`) |
-| `GET` | `/obligations/:id` | Detalle (`ObligationPublicSchema`) |
-| `POST` | `/obligations` | Crear → `{ obligationId }` |
-| `PATCH` | `/obligations/:id` | Actualización parcial |
-| `DELETE` | `/obligations/:id` | Eliminar (204) |
-| `POST` | `/obligations/:id/transitions` | Cambio de estado `{ state }` |
-| `GET` | `/obligations/:id/audit` | Historial por campo |
-
-**Lectura pública:** campo `state` (no `status`), `companyTaxId` enmascarado, `createdAt` / `updatedAt` incluidos, `overdue` calculado.
-
-**Quirk conocido:** `GET .../audit` responde con `JSON.stringify(array)`; el frontend hace doble parse.
-
-### Reglas de dominio (`ObligationLogic`)
-
-- Máquina de estados en el backend; transiciones inválidas → `400`
-- `submitted` con `requiresDocument` exige `documentUrl`
-- `overdue` derivado (no persistido)
-- Audit por cada campo cambiado + transiciones de `state`
-- Operaciones críticas en transacción Sequelize
-- Optimistic locking (`version`) → `409 SynchError`
-
-### Errores HTTP
-
-| Clase | HTTP |
-|-------|------|
-| `InvalidCall` | 400 |
-| `NotFoundError` | 404 |
-| `SynchError` | 409 |
-| `DatabaseError` | 500 |
+→ [backend-express/README.md](backend-express/README.md)
 
 ---
 
-## Frontend (`frontend/`)
+## Frontend
 
-### Stack
+Next.js 15 (App Router) + Server Actions + Zod. Acceso a datos vía `HttpObligationsClient` / `MockObligationsClient`; validación y normalización en schemas `*UiSchema` y `*FromFormSchema`.
 
-- **Next.js 15** (App Router) + **React 19** + **TypeScript**
-- **Tailwind CSS**
-- **Redux Toolkit** — búsqueda y orden (estado UI efímero)
-- **Server Actions** — mutaciones y lectura inicial
-- **react-i18next** — ES / EN (switch en footer)
-- **Zod** — schemas copiados del backend
+→ [frontend/README.md](frontend/README.md)
 
-### Arquitectura de datos
+---
 
-```
-UI / Server Actions
-       ↓
-getObligationClient()  →  HttpObligationsClient | MockObligationsClient
-       ↓                        ↑
-ObligationLogic (isOverdue, parseo Zod, payloads)
-       ↓
-Backend HTTP  |  Mock en memoria
-```
+## Conexion
 
-Clases en `src/lib/logic/obligation/`:
-
-| Clase | Rol |
-|-------|-----|
-| `ObligationLogic` | Parseo audit, `safeParse` de formularios |
-| `HttpObligationsClient` | `fetch` al backend |
-| `MockObligationsClient` | Datos locales para desarrollo |
-| `ObligationsClient` | Clase abstracta — contrato único |
-
-Los schemas Zod viven en `src/schemas/` (copia del backend). No hay capa “repository”.
-
-### Pantallas
-
-| Ruta | Descripción |
-|------|-------------|
-| `/` | Dashboard (KPIs + tabla próximos vencimientos) |
-| `/obligations` | Listado, búsqueda, orden, botón crear |
-| `/obligations/new` | Alta |
-| `/obligations/[id]` | Detalle, audit agrupado, transiciones, eliminar |
-| `/obligations/[id]/edit` | Edición |
-
-### Contrato UI ↔ API
-
-- Frontend usa **`state`** (alineado al backend)
-- Botones de transición: tabla estática `NEXT_STATES` + labels `TRANSITION_ACTIONS` (solo presentación; validación en backend)
-- Audit: agrupado por `date` ISO idéntico, más reciente arriba; campos traducidos, estados/fechas/booleanos formateados
-- Formularios: `safeParse` Zod al submit; omite `companyTaxId` y `description` vacíos en PATCH; tax id enmascarado solo como placeholder en edición
-- Tipos de obligación: valores opacos (texto libre, sin traducir)
-- Loaders: `app/loading.tsx`, `app/obligations/loading.tsx`, submit en `ObligationForm`
+La conexión entre Front y Back se configura con variables de entorno en `frontend/.env` y `backend-express/.env`. Por defecto Front corre en el puerto 3000 y Back en el puerto 5000.
 
 ---
 
 ## Testing
 
-Stack: **Vitest** en backend y frontend. Backend además usa **supertest**; frontend usa **Testing Library** + jsdom.
+Stack: **Vitest** en backend y frontend; **supertest** (HTTP backend); **Testing Library** + jsdom (componentes frontend); **Playwright** (E2E UX con mock).
 
 ### Comandos
 
 ```bash
-cd backend-express && npm install && npm run test:run
-cd frontend && npm install && npm run test:run
-# watch mode: npm run test
+cd backend-express && npm run test:run
+cd frontend && npm run test:run
+cd frontend && npm run test:e2e          # Playwright (primera vez: npx playwright install chromium)
 ```
 
-### Backend (`backend-express/`)
+Watch mode: `npm run test` en cada carpeta. Playwright interactivo: `npm run test:e2e:ui` en `frontend/`.
 
-| Archivo | Tipo | Qué cubre |
-|---------|------|-----------|
-| `src/api/obligation.logic.test.ts` | Unit | `ObligationLogic`: overdue, transiciones, validateUpdate |
-| `src/schemas/obligationSchema.test.ts` | Unit | Zod: estados, tax id enmascarado, coerción de fechas |
-| `src/test/api.integration.test.ts` | HTTP | Dashboard, list, detalle enmascarado, 404, transición inválida |
+**CI:** GitHub Actions (`.github/workflows/ci.yml`) corre backend (Vitest + Postgres), frontend unit y E2E en cada push y pull request.
 
-**Config:** `vitest.config.ts`, setup en `src/test/setup.ts`.
-
-**App para tests:** Express vive en `src/app.ts` (sin `listen`); `server.ts` solo arranca el puerto al ejecutarse directo.
-
-**Integración HTTP:** requiere Postgres + seed. Si no hay conexión, el bloque `"API integration"` se salta con `describe.skipIf`. Para correrlo:
-
-```bash
-docker compose -f database/compose.yml up -d
-cd backend-express && npm run seed && npm run test:run
-```
-
-### Frontend (`frontend/`)
+### Backend
 
 | Archivo | Qué cubre |
 |---------|-----------|
-| `src/lib/logic/obligation/ObligationLogic.test.ts` | Overdue, parseAudit (incl. doble JSON del backend), payloads |
-| `src/lib/logic/obligation/MockObligationsClient.test.ts` | list, getById, create, transition (sin red) |
+| `src/api/obligation.logic.test.ts` | `ObligationLogic`: overdue, transiciones, **invariante doc-gated**, validateUpdate |
+| `src/schemas/obligationSchema.test.ts` | Zod: estados, tax id enmascarado, fechas |
+| `src/test/api.integration.test.ts` | HTTP: dashboard, list, detalle, 404, transición inválida |
+
+Integración HTTP requiere Postgres + seed; si no hay conexión, el bloque se salta con `describe.skipIf`. App de test: `src/app.ts` (sin `listen`).
+
+### Frontend (unit / componentes)
+
+| Archivo | Qué cubre |
+|---------|-----------|
+| `src/schemas/obligationUi.test.ts` | Schemas UI, audit, payloads de formulario |
+| `src/lib/logic/obligation/MockObligationsClient.test.ts` | CRUD mock sin red |
 | `src/components/detail/transitionActions.test.ts` | `NEXT_STATES`, `TRANSITION_ACTIONS` |
-| `src/components/ui/StateBadge.test.tsx` | Render + i18n mockeado |
+| `src/components/ui/StateBadge.test.tsx` | Badge + i18n mockeado |
 
-**Config:** `vitest.config.ts` (jsdom), setup en `src/test/setup.ts` (jest-dom).
+En tests unitarios importar archivos concretos de `schemas/` o `MockObligationsClient.ts`, no `lib/logic/obligation/index.ts` (`server-only`).
 
-**Nota:** en tests importar clases concretas (`ObligationLogic.ts`, `MockObligationsClient.ts`), no `@/lib/logic/obligation/index.ts` porque tiene `import "server-only"`.
+### E2E (frontend)
 
-### E2E — experiencia de usuario (`frontend/`)
+Playwright levanta `next dev` en puerto **3001** con `USE_MOCK_DATA=true` (no requiere backend ni Postgres). Ver `e2e/ux-flow.spec.ts`.
 
-**Stack:** Playwright (Chromium). Levanta `next dev` con `USE_MOCK_DATA=true`; no requiere backend ni Postgres.
+### Pendiente de cobertura
 
-| Archivo | Qué cubre |
-|---------|-----------|
-| `e2e/ux-flow.spec.ts` | Dashboard → listado (búsqueda) → detalle (vencido, audit) → transición → alta → edición → cambio de idioma |
-
-```bash
-cd frontend
-npm install
-npx playwright install chromium   # primera vez
-npm run test:e2e                  # headless
-npm run test:e2e:ui               # modo interactivo
-```
-
-**Config:** `playwright.config.ts` (webServer en puerto **3001** con `USE_MOCK_DATA=true`; no reutiliza un `next dev` en 3000).
-
-**Nota:** si tenés `npm run dev` en 3000, no hace falta apagarlo; E2E levanta su propio server en 3001.
-
-### Pendiente
-
-- Tests de `HttpObligationsClient` (mock `fetch`)
+- `HttpObligationsClient` con `fetch` mockeado
 - RTL para `AuditTrail`, `ObligationForm`
 - supertest: conflictos 409 (optimistic lock)
 
 ### Problemas frecuentes
 
 - **Integración skipped:** Postgres apagado o `.env` mal configurado.
-- **Terminal sin output en Cursor:** ejecutar en WSL/PowerShell externo, p. ej. `wsl -e bash -lc "cd /home/gaston/LAZO/frontend && npm run test:run"`.
 
 ---
 
 ## Mejoras pendientes
 
 - Búsqueda/orden server-side en frontend con skeleton optimista
-- Endpoint audit: responder JSON array directo (sin `JSON.stringify`)
 - Feedback de errores de formulario más rico
 
 ---
 
-## Otros documentos
+## Otros
 
-- `DECISIONS.md` — decisiones de diseño (incluye testing)
-- `frontend/README.md` — resumen del frontend
-- `INPUT.md` — historial de instrucciones
+- `INPUT.md` — historial de instrucciones del challenge

@@ -1,205 +1,158 @@
-# INPUT — Mensajes del usuario
+# INPUT — Instrucciones del proyecto
 
-Volcado cronológico de instrucciones y consultas de la conversación sobre LAZO.
+Registro cronológico de **pedidos funcionales y decisiones** sobre LAZO. No incluye consultas de aprendizaje ni troubleshooting puntual.
 
 ---
-
 
 ## 1. Setup del proyecto
 
-> copia la carpeta Personal/Lazo de mi escritorio de windows a mi home en wsl
+> Copiar Personal/LAZO desde OneDrive (Windows) al home en WSL.
 
-> Crea una carpeta LAZO, movete adentro y pega este archivo c:\Users\gasto\OneDrive\Desktop\Personal\LAZO\SPEC.pdf. Analizalo al terminar para tenerlo en contexto pero espera que te de mas instrucciones
+> Crear carpeta `LAZO`, copiar `SPEC.pdf` y analizarlo; esperar más instrucciones.
 
----
-
-## 2. Frontend Bootstrap (`frontend/`)
-
-> Arma el frontend en una carpeta dedicada. [instrucciones detalladas: react-bootstrap, redux, .env, spinners, header/footer, dashboard KPIs, obligaciones con tabla/buscador/orden, detalle con transiciones, tema celeste/azul, react-toastify, FRONTEND.md]
-
-> No hagas una capa de API, usa server actions a menos que no se pueda. Si hay alguna funcion que no se pueda implementar con server actions documentalo y explica porque no se puede
-
-> hiciste algun cambio? creo que voy a mirar primer la capa api
+> Estructura inicial: backend Python (FastAPI) y Express en carpetas separadas.
 
 ---
 
-## 3. Frontend Tailwind (`frontend-tw/`)
+## 2. Frontend Bootstrap (`frontend/` — iteración descartada)
 
-> ok rehacelo pero usando solo tailwind y librerias de componentes si necesitas, en otra carpeta
+> Frontend dedicado con react-bootstrap, Redux (búsqueda/orden), `.env`, spinners, header/footer, dashboard KPIs, listado de obligaciones, detalle con transiciones, tema celeste/azul, react-toastify.
 
-> Agrega una pagina para crear y otra para editar obligaciones. Para crear una obligacion agrega un boton arriba a la derecha de la pagina de obligaciones
+> Sin capa API en el cliente: Server Actions salvo donde no sea posible (documentar excepciones).
 
-> Hace que en el dashboard los proximos 10 vencimientos sean clickeables y te lleven al reporte correspondientes
+---
 
-> dale una animacion cuando se pasa el mouse por encima a las stats del dashboard. tipo pop up
+## 3. Frontend Tailwind (`frontend-tw/` → `frontend/`)
 
-> menos
+> Rehacer con Tailwind en otra carpeta.
+
+> Pantallas crear y editar; botón “Nueva obligación” arriba a la derecha del listado.
+
+> Dashboard: próximos 10 vencimientos clickeables al detalle.
+
+> Animación sutil en hover de las stats del dashboard (ajustada a “menos” tras feedback).
 
 ---
 
 ## 4. Backend — inicio y datos
 
-> anda a backend-express y borra todo lo que no sea configuracion inicial. osea package.json y otros archivos similares de la raiz
+> Limpiar `backend-express/` dejando solo configuración inicial (package.json, etc.).
 
-> el audit deberia ser diferenciado por cada cambio en un campo. deja el frontend asi por ahora. armame una carpeta data con dos archivos obligation.js y obligationAudit.js con informacion de mockup. Para el audit usa los campos field, from, to y createdAt
+> Audit por cambio de campo; mock en `data/obligation.js` y `data/obligationAudit.js` (`field`, `from`, `to`, `createdAt`).
 
-> movi la carpeta data a backend/src/data, anda y reemplaza los companyTaxId por ids completos
-
-> y sacale el id a los audit, son entidades debiles
-
-> fijate mis modelos de backend y corregi los datos de mockup para usar los mismos nombres
-
-> pone versiones en los audit de mockup
+> Alinear mockups con modelos Sequelize: tax ids completos, audit sin id propio, campo `version` en audit mock.
 
 ---
 
-## 5. Backend — configuración y tooling
+## 5. Backend — configuración
 
-> como agrego el alias @ a la config del backend
+> Alias `@/` en backend; módulos ES (`"type": "module"`), ejecución con `tsx` (seeder incluido).
 
-> estoy escribiendo javascript plano, todavia no me meti con typescript
-
-> [Error seeder top-level await / cjs]
-
-> Error: Cannot find module '@/db/orm.js'. no hagas cambios decime que hacer
-
-> me tiro esto node MODULE_TYPELESS_PACKAGE_JSON... yo prefiero ES
-
-> arma un archivo REMAINDERS.md y pone que configuramos type: module en el backend y haciendo eso tsx empezo a reconocer los archivos. tambien agrega que usamos tsx para correr el seeder
-
-> Unable to connect to the database: SASL... client password must be a string
+> Notas de setup unificadas en README (antes `REMAINDERS.md`).
 
 ---
 
 ## 6. Backend — dominio, tipos y Zod
 
-> me di cuenta de que hay un problema con armar un audit y usar optimistic locking...
+> Zod + tipos en backend; actualizar `DECISIONS.md` (trabajo manual con ayuda de IA).
 
-> no hagas mas cambios sin preguntarme primero. agrega esto como regla para el resto de la sesion
+> Renombrar schemas plurales → singulares (`ObligationPublicSchema`, etc.).
 
-> solo aca
+> Modelos Sequelize tipados; sin archivos `index.ts` en modelos.
 
-> ahora responde mi pregunta sobre optimistic locking
+> Rutas mock en `backend/src/routes`; middleware centralizado de errores.
 
-> una pregunta, entiendo que la libreria zod esta pensada para chequear objetos recibidos por la red...
-
-> me parece trivial lo que hace zod, me explicas que cosas interesantes tiene...
-
-> agrega zod y tipos al backend tal como esta y explicame todo lo que hiciste. actualiza DECISIONS.md...
-
-> busca todas las partes donde tenga una version plural de obligation en los esquemas...
-
-> agrega tipos a los modelos y converti los archivos a typescript. [ejemplo Usuario extends Model]
-
-> no quiero que crees archivos que se llamen index.ts, cambia los imports de los modelos que use index.ts. ya lo borre para que sepas
-
-> arma en backend/src/routes las rutas con info mockup
-
-> agrega a DECISIONS.md que decidimos atrapar todos los errores de la api en un middleware
+> README raíz: tiempo invertido (~8 h) y decisiones de diseño.
 
 ---
 
-## 7. Consultas técnicas (backend / TS)
+## 7. Backend — correcciones y documentación
 
-> dame un ejemplo donde sea util urlencoded si el frontend esta hecho con react y RTK toolkit
+> Refactor tipado (rutas, server, middleware) respetando estructura y estilo existentes.
 
-> haceme un resumen de la API que consume el frontend
+> Documentar backend en README; tipar seeder y data; mover doc frontend a `frontend-tw/`.
 
-> esta funcion basicamente espera a que termine la funcion fn? [asyncHandler]
-
-> que quiere decir la promise queda rechazada
-
-> cuando hace falta hacer unwrap a una promise
-
-> puedo hacer esto en typescript? [validateState]
-
-> como digo que espero un diccionario con atributos?
-
-> esto es una forma de tipar en typescript? [JSDoc @param]
-
-> porque me dice esto [ObligationState can't be used to index Record...]
-
-> que implicaciones tiene activar allowImportingTsExtensions
-
-> puedo importar el mismo archivo pero con extension js?
-
-> que hace esto: String(value).replace(/\D/g, "")
-
-> esta bien este check? [MaskedTaxId refine]
-
-> puede tener menos de 4 digitos
-
-> zod define un tipo distinto de string? [brand MaskedTaxId]
-
-> hace falta esto? [hasMany / belongsTo]
-
-> me surgio una duda. en la idea de optimistic locking...
-
-> nono me refiero a que un hilo puede tener una copia desincronizada...
-
-> como tipo esto [maskTaxId]
-
-> esto no tipa [getAuditTrail return type]
-
-> hay alguna funcion que chequee si es undefined o null
-
-> con version de sequelize automaticamente se actualiza la version al guardar?
-
-> esto esta bien o hay problemas con el formato de date? [toDateString en Op.lt]
-
-> como calculo upcomingDue? debe ser que se vence en 7 dias
-
-> pero setDate funciona bien asi?
-
-> esto es aceptable? [delete solo destroy]
-
-> revisa api/obligation.ts y diagnostica los problemas del metodo update
+> ESLint + `tsconfig` en backend.
 
 ---
 
-## 8. Backend — fix y documentación
+## 8. Frontend — consolidación Tailwind
 
-> copia el backend en otra carpeta y hace los cambios necesarios... tipa rutas, server y middleware... documenta en CAMBIOS.md
+> Renombrar `frontend-tw` → `frontend`; eliminar versión Bootstrap; replicar crear/editar.
 
-> no respetaste la estructura del codigo. volca un resumen en /tmp, reinicia contexto, lee SPEC.pdf y hacelo de vuelta
-
-> que paso?
-
-> si [continuar CAMBIOS.md y pruebas]
-
-> que significa esto? [sanitizeMutation]
-
-> tiene sentido usar coerce si yo mismo escribo el consumidor de la api?
-
-> que es el signo de exclamacion [updatedAt!]
-
-> que son estos codigos? [NotFoundError, SynchError, InvalidCall]
-
-> ok me gusta como quedo, agrega documentacion del backend en README.md
-
-> si [README corto en backend-express/]
-
-> tipa seeder.js y los archivos de data. saca los comentarios con JSDoc
-
-> move FRONTEND.md a frontend-tw. si tenes un historial completo de mis mensajes actualiza INPUT.md. unifica REMAINDERS.md con los otros archivos
+> Layout formulario en dos columnas (crear y editar): tipo/responsable, título, descripción, tax id/fecha, documento.
 
 ---
 
-## 9. Otras consultas puntuales
+## 9. Frontend — integración con backend
 
-> hola
+> Integrar sin tocar backend; diseño actual como contrato visual.
 
-> explicame las opciones on update y on delete de un foreign id
+> Audit en detalle: campo, valor anterior, valor siguiente, fecha.
 
-> cuando uso un getter de un modelo, como consigue la informacion?
+> Formularios: tipos correctos, estado inicial en edición, Server Actions hacia la API.
 
-> lazy quiere decir que no se cargo todo el modelo o no se cargo un campo?
+---
 
-> tengo que ejecutar un forEach y lanzar un proceso asincrono por cada elemento...
+## 10. Frontend — arquitectura
 
-> estoy en un REPL de node, puedo borrar una variable?
+> Refactor por encapsulación: clients intercambiables (`Http` / `Mock`) detrás de `ObligationsClient`.
 
-> hace otro archivo INPUT.md volcando los mensajes que te pase hasta ahora
+> Reglas acordadas:
+> - Audit agrupado por fecha ISO idéntica; más reciente arriba; `state` traducido.
+> - Omitir `companyTaxId` y `description` vacíos en PATCH.
+> - Tipos de obligación opacos (sin traducir).
+> - Módulo de datos parte de `ObligationsClient`; schemas en `src/schemas/`.
+> - Redux para búsqueda/orden al navegar entre obligaciones.
+> - Validación con Zod (`safeParse`) al submit; tipos inferidos.
+
+> Implementación con **clases** e instancias en `src/lib/logic/obligation/`.
+
+> Loaders en rutas y submit de formulario; descripción como textarea; tipo editable.
+
+---
+
+## 11. Documentación y testing
+
+> Documentar en `README.md`, `DECISIONS.md` y resumen en `frontend/README.md`.
+
+> Tests: Vitest backend + frontend; documentación en README raíz (sin archivo aparte).
+
+> Campo `overdue` calculado en backend (`ObligationLogic`) y expuesto en schema público; badge en frontend.
+
+> `DECISIONS.md`: optimistic locking adecuado para lecturas frecuentes vs escrituras.
+
+---
+
+## 12. E2E Playwright
+
+> Flujo UX completo con mock (`USE_MOCK_DATA=true`): dashboard, listado, detalle, transición, alta, edición, i18n.
+
+> Configuración en puerto 3001; iteración de selectores y helpers para evitar strict-mode y datos efímeros.
+
+---
+
+## 13. Audit y documentación backend
+
+> Audit como array JSON (sin `JSON.stringify`); frontend parsea directo.
+
+> `backend-express/README.md` + referencia en README raíz.
+
+> `ObligationAuditPublicSchema` enmascara `companyTaxId`; frontend alineado. Parse fallido en detalle → 404; mutaciones → toast.
+
+---
+
+## 14. Refactor frontend — schemas Zod UI
+
+> Mover normalización y validación de formularios a schemas Zod (`transform`, `trimmedEmptyToNull`).
+
+> Eliminar `ObligationLogic` del frontend; renombrar capa interna `Model` → `Ui` (`*UiSchema`, `*FromFormSchema`).
+
+---
+
+## 15. Documentación — limpieza
+
+> Revisar docs: quitar redundancias post-refactor; aclarar wire vs UI, audit JSON, testing consolidado.
 
 ---
 
@@ -210,3 +163,17 @@ Prueba técnica **Compliance Obligations Tracker** (fullstack, 6–8 h efectivas
 - **Dominio:** máquina de estados, documento para `submitted`, `overdue` derivado, tax ID enmascarado, audit trail, concurrencia.
 - **Stack (spec):** backend FastAPI+Pydantic+Postgres; frontend Next.js+TS+Tailwind+Server Actions.
 - **Entregables:** repo, README, DECISIONS.md, tests.
+
+---
+
+## Estado actual
+
+| Área | Decisión vigente |
+|------|------------------|
+| Frontend activo | `frontend/` (Tailwind; Bootstrap descartado) |
+| Datos | `HttpObligationsClient` / `MockObligationsClient`; singleton en `globalThis` |
+| Schemas | Wire (copia backend) + capa UI (`*UiSchema`, `*FromFormSchema`, `trimmedEmptyToNull`) |
+| Dominio | Solo backend (`ObligationLogic`) |
+| Audit API | Array JSON; `companyTaxId` enmascarado en audit |
+| Tests | Vitest (back/front) + Playwright E2E (mock, puerto 3001) |
+| Docs | README raíz, `backend-express/README.md`, `frontend/README.md`, `DECISIONS.md` |

@@ -13,7 +13,7 @@ Decisiones de diseño e implementación. El trabajo se realizó de forma **manua
 - Las rutas async delegan fallos con `next(error)` vía `asyncHandler`, sin repetir try/catch.
 - Un solo lugar para mapear status codes (404 en `notFound`, 400/409/etc. según `err.statusCode`).
 
-**Implementación:** `backend-express/src/middleware/errorMiddleware.js` + `asyncHandler.js`, registrados al final de la cadena en `server.ts`.
+**Implementación:** `backend-express/src/middleware/errorMiddleware.ts` + `asyncHandler.ts`, registrados al final de la cadena en `app.ts`.
 
 ---
 
@@ -33,30 +33,37 @@ Decisiones de diseño e implementación. El trabajo se realizó de forma **manua
 
 ```
 getObligationClient()
-  → new HttpObligationsClient(apiUrl, logic)
-  → new MockObligationsClient(logic)     // USE_MOCK_DATA=true
+  → new HttpObligationsClient(httpClient)
+  → new MockObligationsClient()     // USE_MOCK_DATA=true
 ```
 
-**Motivo (criterio del autor):** clasificar piezas por probabilidad de cambio y **ocultar detalles** detrás de una interfaz clara. Cambiar mock ↔ HTTP implica instanciar otra clase; el resto de la app no conoce `fetch`, URLs ni doble-encoding del audit.
+**Motivo:** ocultar detalles detrás de una interfaz clara. Cambiar mock ↔ HTTP implica instanciar otra clase; el resto de la app no conoce `fetch` ni URLs del backend. El singleton vive en `globalThis` para persistir el mock entre requests en dev/E2E.
 
 | Clase | Responsabilidad |
 |-------|-----------------|
 | `ObligationsClient` | Contrato abstracto (list, getById, create, …) |
-| `ObligationLogic` | `isOverdue`, parseo Zod, serialización, payloads de formulario |
-| `HttpObligationsClient` | HTTP + parseo de respuestas |
+| `HttpObligationsClient` | HTTP + parseo Zod |
 | `MockObligationsClient` | Store en memoria para desarrollo |
 
 **Server Actions** (`src/actions/obligations.ts`) solo orquestan: llaman al client y `revalidatePath`.
 
 ---
 
-## Schemas Zod compartidos (copiados)
+## Schemas Zod: wire (copiados) + capa UI
 
-**Decisión:** copiar literalmente los schemas del backend a `frontend/src/schemas/` y usarlos para parsear respuestas HTTP y validar formularios (`safeParse` al submit).
+**Decisión:** dos niveles de schemas en `frontend/src/schemas/`:
 
-**Motivo:** un solo contrato de datos; los tipos se infieren con `z.infer` en lugar de duplicar interfaces manuales en `lib/types/`.
+| Nivel | Archivos | Uso |
+|-------|----------|-----|
+| **Wire** | `obligationSchema.ts`, `obligationAuditSchema.ts`, `dashboardSchema.ts` (parte pública) | Copia del contrato backend; parseo de JSON HTTP |
+| **UI** | `obligationUiSchema.ts`, transforms en `dashboardSchema.ts` | Normalización para componentes (`id` string, fechas ISO, `description` default `""`) |
+| **Formularios** | `*FromFormSchema`, `ObligationFormValuesSchema` | `safeParse` al submit; `trimmedEmptyToNull`; omite campos vacíos en PATCH |
 
-**Formularios:** validación mínima en UI (sin `required` HTML); primer filtro Zod al enviar; feedback al usuario vía toast con errores del servidor (mejorable).
+**Motivo:** un contrato alineado con el backend sin duplicar interfaces manuales (`z.infer` en `types.ts`). La capa UI concentra transforms que antes vivían en una clase `ObligationLogic` del frontend (eliminada).
+
+**Audit:** `GET .../audit` devuelve un array JSON; el frontend parsea con `ObligationAuditListSchema` (sin doble `JSON.parse`).
+
+**Formularios:** validación mínima en HTML; primer filtro Zod al enviar; feedback vía toast con errores del servidor (mejorable).
 
 ---
 
@@ -68,7 +75,7 @@ getObligationClient()
 
 ## `overdue` en la respuesta pública
 
-**Decisión:** el backend incluye `overdue: boolean` en `ObligationPublicSchema`, calculado con `ObligationLogic.isOverdue()` en `toPublicSchema`. El frontend lo lee tal cual vía `ObligationLogic.fromPublic()`.
+**Decisión:** el backend incluye `overdue: boolean` en `ObligationPublicSchema`, calculado con `ObligationLogic.isOverdue()` en `toPublicSchema`. El frontend lo expone vía `ObligationUiSchema`.
 
 ---
 
@@ -92,7 +99,7 @@ getObligationClient()
 
 ## Server Actions sin capa API en el cliente
 
-**Decisión:** no exponer `fetch` al browser; mutaciones y lecturas iniciales vían Server Actions → `ObligationsClient` (`server-only`).
+**Decisión:** no exponer `fetch` al browser; mutaciones y lecturas iniciales vía Server Actions → `ObligationsClient` (`server-only`).
 
 **Excepciones en cliente:** Redux, i18n, toastify, navegación post-mutación.
 
@@ -122,25 +129,22 @@ Estados y KPIs traducidos; tipos de obligación no.
 
 **Stack:** Vitest (backend + frontend), supertest (HTTP backend), Testing Library + jsdom (frontend), Playwright E2E (frontend UX).
 
-**Decisión:** separar cuatro capas:
-1. **Unit sin DB** — dominio (`ObligationLogic`) y schemas Zod.
+**Decisión:** cuatro capas separadas:
+1. **Unit sin DB** — dominio backend (`ObligationLogic`) y schemas Zod (backend + UI frontend).
 2. **Integración HTTP** — supertest contra `createApp()`; se salta si Postgres no responde.
-3. **Frontend sin red** — `ObligationLogic`, `MockObligationsClient`, componentes con i18n mockeado.
+3. **Frontend sin red** — schemas UI, `MockObligationsClient`, componentes con i18n mockeado.
 4. **E2E UX** — Playwright contra `next dev` con mock in-memory; flujo completo de navegación, CRUD y transiciones.
 
-**Scripts:** `npm run test:run` y `npm run test` (watch) en `backend-express/` y `frontend/`; `npm run test:e2e` en `frontend/` (Playwright).
+**Scripts:** `npm run test:run` / `npm run test` en `backend-express/` y `frontend/`; `npm run test:e2e` en `frontend/`.
 
-**Arquitectura relevante:** `backend-express/src/app.ts` exporta Express sin listener para no ocupar puerto en tests.
+**Regla frontend:** no importar `lib/logic/obligation/index.ts` en tests (`server-only`).
 
-**Regla frontend:** no importar `lib/logic/obligation/index.ts` en tests (`server-only`); usar archivos concretos de la carpeta.
-
-**Pendiente:** `HttpObligationsClient` con fetch mock; RTL para formulario y audit trail; 409 en supertest.
-
-Detalle de archivos y troubleshooting: [README.md § Testing](./README.md#testing).
+Detalle de archivos, comandos y troubleshooting: [README.md § Testing](./README.md#testing).
 
 ---
 
 ## Documentación
 
-- **Fuente de verdad del contrato funcional:** código + schemas Zod + este archivo.
-- `frontend/FRONTEND.md` (iteración anterior) **no** es fuente de verdad; usar `frontend/README.md`.
+- **Fuente de verdad:** código + schemas Zod + este archivo.
+- README raíz: setup full-stack y testing consolidado.
+- `backend-express/README.md` y `frontend/README.md`: detalle por capa sin duplicar la tabla de tests.
