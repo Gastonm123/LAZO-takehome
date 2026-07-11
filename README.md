@@ -1,5 +1,7 @@
 # LAZO — Compliance Obligations Tracker
 
+**Live demo:** [https://lazo-takehome-frontend.onrender.com/](https://lazo-takehome-frontend.onrender.com/)
+
 Sistema full-stack para seguir obligaciones de compliance: API Express + PostgreSQL y frontend Next.js.
 
 | Parte | Carpeta | Puerto default |
