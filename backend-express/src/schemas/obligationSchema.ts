@@ -62,21 +62,23 @@ export const ObligationPublicSchema = z.object({
     overdue: z.boolean(),
 });
 
+const nonEmptyStr = (str:string) => (str.trim() !== "");
+
 export const ObligationCreate = z.object({
     dueDate: z.coerce.date(),
-    owner: z.string(),
+    owner: z.string().refine(nonEmptyStr),
     requiresDocument: StringBool,
     documentUrl: z.string().nullable().optional(),
-    companyTaxId: z.string(),
-    title: z.string(),
-    type: z.string(),
+    companyTaxId: z.string().refine(nonEmptyStr),
+    title: z.string().refine(nonEmptyStr),
+    type: z.string().refine(nonEmptyStr),
     description: z.string().nullable().optional(),
 });
 
 export const ObligationUpdate = z.object({
     dueDate: z.coerce.date().optional(),
     owner: z.string().optional(),
-    requiresDocument: StringBool,
+    requiresDocument: StringBool.optional(),
     documentUrl: z.string().nullable().optional(),
     companyTaxId: z.string().optional(),
     title: z.string().optional(),

@@ -32,6 +32,38 @@ describe("MockObligationsClient", () => {
     expect(created.title).toBe("Test obligation");
     expect(created.type).toBe("custom_type");
     expect(created.state).toBe("pending");
+    expect(created.companyTaxId).toBe("••••6789");
+  });
+
+  it("rejects create with empty required fields", async () => {
+    await expect(
+      client.create({
+        type: "custom_type",
+        title: "",
+        description: "",
+        owner: "Tester",
+        dueDate: "2026-12-31",
+        companyTaxId: "123456789",
+        requiresDocument: false,
+        documentUrl: null,
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("allows clearing description on update", async () => {
+    const updated = await client.update("1", {
+      type: "annual_report",
+      title: "Annual Report 2025",
+      description: "",
+      owner: "Alice Johnson",
+      dueDate: "2026-07-09",
+      companyTaxId: "",
+      requiresDocument: true,
+      documentUrl: null,
+    });
+
+    expect(updated.description).toBe("");
+    expect(updated.companyTaxId).toBe("");
   });
 
   it("transitions state", async () => {

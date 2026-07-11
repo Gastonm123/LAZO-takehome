@@ -145,24 +145,23 @@ export class MockObligationsClient extends ObligationsClient {
   }
 
   async create(input: ObligationFormValues): Promise<string> {
-    ObligationCreateFromFormSchema.parse(input);
+    const body = ObligationCreateFromFormSchema.parse(input);
     const id = String(
       this.store.reduce((max, item) => Math.max(max, Number(item.id)), 0) + 1,
     );
     const timestamp = new Date().toISOString();
-    const dueDate = new Date(input.dueDate).toISOString();
 
     this.store.push({
       id,
-      type: input.type,
-      title: input.title,
-      description: input.description,
+      type: body.type,
+      title: body.title,
+      description: body.description ?? null,
       state: "pending",
-      dueDate,
-      owner: input.owner,
-      requiresDocument: input.requiresDocument,
-      documentUrl: input.requiresDocument ? input.documentUrl : null,
-      companyTaxId: maskTaxId(input.companyTaxId),
+      dueDate: body.dueDate.toISOString(),
+      owner: body.owner,
+      requiresDocument: body.requiresDocument,
+      documentUrl: body.requiresDocument ? (body.documentUrl ?? null) : null,
+      companyTaxId: maskTaxId(body.companyTaxId),
       createdAt: timestamp,
       updatedAt: timestamp,
       overdue: false,
@@ -172,28 +171,26 @@ export class MockObligationsClient extends ObligationsClient {
   }
 
   async update(id: string, input: ObligationFormValues): Promise<ObligationDetail> {
-    ObligationUpdateFromFormSchema.parse(input);
+    const body = ObligationUpdateFromFormSchema.parse(input);
     const index = this.store.findIndex((item) => item.id === id);
     if (index === -1) {
       throw new Error("Obligation not found");
     }
 
     const current = this.store[index];
-    const dueDate = new Date(input.dueDate).toISOString();
-    const companyTaxId = input.companyTaxId.trim()
-      ? maskTaxId(input.companyTaxId)
-      : current.companyTaxId;
 
     this.store[index] = {
       ...current,
-      type: input.type,
-      title: input.title,
-      description: input.description,
-      owner: input.owner,
-      dueDate,
-      requiresDocument: input.requiresDocument,
-      documentUrl: input.requiresDocument ? input.documentUrl : null,
-      companyTaxId,
+      type: body.type!,
+      title: body.title!,
+      description: body.description ?? null,
+      owner: body.owner!,
+      dueDate: body.dueDate!.toISOString(),
+      requiresDocument: body.requiresDocument!,
+      documentUrl: body.requiresDocument
+        ? (body.documentUrl ?? null)
+        : null,
+      companyTaxId: maskTaxId(body.companyTaxId!),
       updatedAt: new Date().toISOString(),
     };
 

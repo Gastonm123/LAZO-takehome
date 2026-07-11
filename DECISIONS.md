@@ -57,9 +57,14 @@ getObligationClient()
 |-------|----------|-----|
 | **Wire** | `obligationSchema.ts`, `obligationAuditSchema.ts`, `dashboardSchema.ts` (parte pública) | Copia del contrato backend; parseo de JSON HTTP |
 | **UI** | `obligationUiSchema.ts`, transforms en `dashboardSchema.ts` | Normalización para componentes (`id` string, fechas ISO, `description` default `""`) |
-| **Formularios** | `*FromFormSchema`, `ObligationFormValuesSchema` | `safeParse` al submit; `trimmedEmptyToNull`; omite campos vacíos en PATCH |
+| **Formularios** | `*FromFormSchema`, `ObligationFormValuesSchema` | `safeParse` al submit; create validado con `nonEmptyStr`; update envía el formulario completo |
 
 **Motivo:** un contrato alineado con el backend sin duplicar interfaces manuales (`z.infer` en `types.ts`). La capa UI concentra transforms que antes vivían en una clase `ObligationLogic` del frontend (eliminada).
+
+**Create vs update (contrato wire):**
+- **Create** (`ObligationCreate`): `owner`, `title`, `type` y `companyTaxId` deben ser strings no vacíos (`nonEmptyStr` = trim ≠ `""`). No se aceptan `""` en la API al crear, para que los valores iniciales queden en el audit.
+- **Update** (`ObligationUpdate`): PATCH parcial; los mismos campos son opcionales y **sí** pueden enviarse vacíos (`""` o `null` en opcionales) para borrar un valor; el audit registra el cambio respecto al estado anterior.
+- **Opcionales en create** (`description`, `documentUrl`): si vienen vacíos se ignoran en el audit de alta; en DB se persisten como `null` cuando no se envían.
 
 **Audit:** `GET .../audit` devuelve un array JSON; el frontend parsea con `ObligationAuditListSchema` (sin doble `JSON.parse`).
 

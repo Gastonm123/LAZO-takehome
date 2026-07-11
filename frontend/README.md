@@ -36,7 +36,7 @@ getObligationClient()   // singleton en globalThis
 |------|-----------|-----|
 | Wire | `obligationSchema.ts`, `obligationAuditSchema.ts` | Contrato HTTP (copia backend) |
 | UI | `obligationUiSchema.ts`, `dashboardSchema.ts` | Normalización post-parse (`*UiSchema`) |
-| Formularios | `*FromFormSchema`, `zodUtils.ts` | Validación submit, trim, PATCH parcial |
+| Formularios | `*FromFormSchema` | Validación submit, PATCH parcial |
 | Clientes | `src/lib/logic/obligation/` | HTTP o mock; sin lógica de dominio duplicada |
 | UI | `src/components/`, `src/app/` | Presentación; sin `fetch` en browser |
 

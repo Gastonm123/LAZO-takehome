@@ -28,24 +28,30 @@ export const ObligationSearch = z.object({
 });
 
 export const MaskedTaxId = z
-  .string()
-  .refine(
-    (taxId) => {
-      if (taxId.length >= 4 && /\d/.test(taxId.slice(0, -4))) {
-        return false;
-      }
-      return true;
-    },
-    { message: "Tax ID must be masked (••••1234)" },
-  )
-  .brand<"MaskedTaxId">();
+.string()
+.refine(
+  (taxId) => {
+    if (taxId.length >= 4 && /\d/.test(taxId.slice(0, -4))) {
+      return false;
+    }
+    return true;
+  },
+  { message: "Tax ID must be masked (••••1234)" },
+)
+.brand<"MaskedTaxId">();
+
+const StringBool = z.coerce.string().transform(str => {
+  if (str === 'true') return true;
+  // if (str === 'false') return false;
+  return false;
+});
 
 export const ObligationPublicSchema = z.object({
   id: ObligationId,
   state: ObligationState,
   dueDate: z.coerce.date(),
   owner: z.string(),
-  requiresDocument: z.coerce.boolean(),
+  requiresDocument: z.boolean(),
   documentUrl: z.string().nullable(),
   companyTaxId: MaskedTaxId,
   title: z.string(),
@@ -56,21 +62,23 @@ export const ObligationPublicSchema = z.object({
   overdue: z.boolean(),
 });
 
+const nonEmptyStr = (str:string) => (str.trim() !== "");
+
 export const ObligationCreate = z.object({
   dueDate: z.coerce.date(),
-  owner: z.string(),
-  requiresDocument: z.coerce.boolean().default(false),
+  owner: z.string().refine(nonEmptyStr),
+  requiresDocument: StringBool,
   documentUrl: z.string().nullable().optional(),
-  companyTaxId: z.string(),
-  title: z.string(),
-  type: z.string(),
+  companyTaxId: z.string().refine(nonEmptyStr),
+  title: z.string().refine(nonEmptyStr),
+  type: z.string().refine(nonEmptyStr),
   description: z.string().nullable().optional(),
 });
 
 export const ObligationUpdate = z.object({
   dueDate: z.coerce.date().optional(),
   owner: z.string().optional(),
-  requiresDocument: z.coerce.boolean().optional(),
+  requiresDocument: StringBool.optional(),
   documentUrl: z.string().nullable().optional(),
   companyTaxId: z.string().optional(),
   title: z.string().optional(),

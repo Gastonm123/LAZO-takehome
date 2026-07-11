@@ -16,8 +16,6 @@ const isDirectRun =
 if (isDirectRun) {
     app.listen(port, () => {
         logger.log(`Server running on port ${port}`)
-        if (process.env.NODE_ENV) {
-            logger.log(`Running in mode ${process.env.NODE_ENV}`)
-        }
+        logger.log(`Running in mode ${process.env.NODE_ENV}`)
     });
 }

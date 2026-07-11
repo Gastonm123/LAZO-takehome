@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ObligationAuditListSchema } from "@/schemas/obligationAuditSchema";
+import { ObligationUpdate } from "@/schemas/obligationSchema";
 import {
   ObligationCreateFromFormSchema,
   ObligationUiSchema,
@@ -75,12 +76,20 @@ describe("ObligationAuditListSchema", () => {
   });
 });
 
+describe("ObligationUpdate", () => {
+  it("accepts partial body without requiresDocument", () => {
+    const body = ObligationUpdate.parse({ title: "Updated title" });
+    expect(body.title).toBe("Updated title");
+    expect(body.requiresDocument).toBeUndefined();
+  });
+});
+
 describe("ObligationUpdateFromFormSchema", () => {
-  it("omits empty companyTaxId and description", () => {
+  it("includes empty companyTaxId and description on update", () => {
     const body = ObligationUpdateFromFormSchema.parse({
       type: "annual_report",
       title: "Updated",
-      description: "   ",
+      description: "",
       owner: "Alice",
       dueDate: "2026-12-31",
       companyTaxId: "",
@@ -88,8 +97,8 @@ describe("ObligationUpdateFromFormSchema", () => {
       documentUrl: null,
     });
 
-    expect(body.companyTaxId).toBeUndefined();
-    expect(body.description).toBeUndefined();
+    expect(body.companyTaxId).toBe("");
+    expect(body.description).toBe("");
     expect(body.title).toBe("Updated");
   });
 });
@@ -103,6 +112,21 @@ describe("ObligationCreateFromFormSchema", () => {
         description: "",
         owner: "Alice",
         dueDate: "not-a-date",
+        companyTaxId: "123456789",
+        requiresDocument: false,
+        documentUrl: null,
+      }),
+    ).toThrow();
+  });
+
+  it("throws when title is empty", () => {
+    expect(() =>
+      ObligationCreateFromFormSchema.parse({
+        type: "annual_report",
+        title: "",
+        description: "",
+        owner: "Alice",
+        dueDate: "2026-12-31",
         companyTaxId: "123456789",
         requiresDocument: false,
         documentUrl: null,

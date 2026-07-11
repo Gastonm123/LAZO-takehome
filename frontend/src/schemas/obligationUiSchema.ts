@@ -1,5 +1,4 @@
 import z from "zod";
-import { trimmedEmptyToNull } from "./zodUtils";
 import {
   ObligationCreate,
   ObligationPublicSchema,
@@ -43,19 +42,9 @@ export const ObligationCreateFromFormSchema = ObligationFormValuesSchema.transfo
       dueDate: values.dueDate,
       companyTaxId: values.companyTaxId,
       requiresDocument: values.requiresDocument,
+      description: values.description,
+      documentUrl: values.documentUrl,
     };
-
-    const description = trimmedEmptyToNull.parse(values.description);
-    if (description !== null) {
-      payload.description = description;
-    }
-
-    const documentUrl = values.documentUrl
-      ? trimmedEmptyToNull.parse(values.documentUrl)
-      : null;
-    if (documentUrl !== null) {
-      payload.documentUrl = documentUrl;
-    }
 
     return ObligationCreate.parse(payload);
   },
@@ -69,24 +58,10 @@ export const ObligationUpdateFromFormSchema = ObligationFormValuesSchema.transfo
       owner: values.owner,
       dueDate: values.dueDate,
       requiresDocument: values.requiresDocument,
+      description: values.description,
+      companyTaxId: values.companyTaxId,
+      documentUrl: values.documentUrl,
     };
-
-    const description = trimmedEmptyToNull.parse(values.description);
-    if (description !== null) {
-      payload.description = description;
-    }
-
-    const companyTaxId = trimmedEmptyToNull.parse(values.companyTaxId);
-    if (companyTaxId !== null) {
-      payload.companyTaxId = companyTaxId;
-    }
-
-    const documentUrl = values.documentUrl
-      ? trimmedEmptyToNull.parse(values.documentUrl)
-      : null;
-    if (documentUrl !== null) {
-      payload.documentUrl = documentUrl;
-    }
 
     return ObligationUpdate.parse(payload);
   },

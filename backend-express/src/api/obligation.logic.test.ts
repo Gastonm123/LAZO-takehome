@@ -147,7 +147,7 @@ describe("Invariante doc-gated", () => {
                             requiresDocument: true,
                             documentUrl: "/mock/a.pdf",
                         }),
-                        { documentUrl: "/mock/b.pdf", requiresDocument: true },
+                        { documentUrl: "/mock/b.pdf" },
                     ),
                 ).toBe(false);
             });
@@ -160,7 +160,7 @@ describe("Invariante doc-gated", () => {
                             requiresDocument: true,
                             documentUrl: "/mock/doc.pdf",
                         }),
-                        { title: "Updated title", "requiresDocument": true },
+                        { title: "Updated title" },
                     ),
                 ).toBe(true);
             });

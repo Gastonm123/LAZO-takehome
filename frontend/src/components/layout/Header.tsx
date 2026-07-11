@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import LogoMark from "@/components/brand/LogoMark";
 import { cn } from "@/lib/utils/cn";
 
 const links = [
@@ -20,9 +21,7 @@ export default function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-4">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-lazo-600 text-sm font-bold text-white">
-              LZ
-            </span>
+            <LogoMark />
             <span className="hidden font-semibold text-lazo-800 sm:inline">
               {t("app.title")}
             </span>

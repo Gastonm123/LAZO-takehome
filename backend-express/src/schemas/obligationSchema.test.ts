@@ -4,7 +4,17 @@ import {
     ObligationCreate,
     ObligationPublicSchema,
     ObligationState,
+    ObligationUpdate,
 } from "@/schemas/obligationSchema.js";
+
+const validCreate = {
+    type: "annual_report",
+    title: "Test",
+    owner: "Alice",
+    dueDate: "2026-12-31",
+    companyTaxId: "123456789",
+    requiresDocument: false,
+};
 
 describe("ObligationState", () => {
     it("accepts valid states", () => {
@@ -29,15 +39,28 @@ describe("MaskedTaxId", () => {
 
 describe("ObligationCreate", () => {
     it("coerces dueDate from string", () => {
-        const parsed = ObligationCreate.parse({
-            type: "annual_report",
-            title: "Test",
-            owner: "Alice",
-            dueDate: "2026-12-31",
-            companyTaxId: "123456789",
-            requiresDocument: false,
-        });
+        const parsed = ObligationCreate.parse(validCreate);
         expect(parsed.dueDate).toBeInstanceOf(Date);
+    });
+
+    it("rejects empty title", () => {
+        expect(() =>
+            ObligationCreate.parse({ ...validCreate, title: "" }),
+        ).toThrow();
+    });
+
+    it("rejects whitespace-only owner", () => {
+        expect(() =>
+            ObligationCreate.parse({ ...validCreate, owner: "   " }),
+        ).toThrow();
+    });
+});
+
+describe("ObligationUpdate", () => {
+    it("accepts partial body without requiresDocument", () => {
+        const parsed = ObligationUpdate.parse({ title: "Updated title" });
+        expect(parsed.title).toBe("Updated title");
+        expect(parsed.requiresDocument).toBeUndefined();
     });
 });
 
