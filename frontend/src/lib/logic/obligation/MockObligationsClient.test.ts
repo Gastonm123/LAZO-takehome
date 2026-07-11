@@ -50,20 +50,19 @@ describe("MockObligationsClient", () => {
     ).rejects.toThrow();
   });
 
-  it("allows clearing description on update", async () => {
+  it("keeps companyTaxId when edit form leaves it unchanged", async () => {
     const updated = await client.update("1", {
       type: "annual_report",
       title: "Annual Report 2025",
       description: "",
       owner: "Alice Johnson",
       dueDate: "2026-07-09",
-      companyTaxId: "",
       requiresDocument: true,
       documentUrl: null,
     });
 
     expect(updated.description).toBe("");
-    expect(updated.companyTaxId).toBe("");
+    expect(updated.companyTaxId).toBe("••••6789");
   });
 
   it("transitions state", async () => {

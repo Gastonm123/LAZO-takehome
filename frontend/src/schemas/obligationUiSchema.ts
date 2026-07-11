@@ -28,7 +28,7 @@ export const ObligationFormValuesSchema = z.object({
   description: z.string(),
   owner: z.string(),
   dueDate: z.string(),
-  companyTaxId: z.string(),
+  companyTaxId: z.string().optional(),
   requiresDocument: z.boolean(),
   documentUrl: z.string().nullable(),
 });
@@ -40,7 +40,7 @@ export const ObligationCreateFromFormSchema = ObligationFormValuesSchema.transfo
       title: values.title,
       owner: values.owner,
       dueDate: values.dueDate,
-      companyTaxId: values.companyTaxId,
+      companyTaxId: values.companyTaxId ?? "",
       requiresDocument: values.requiresDocument,
       description: values.description,
       documentUrl: values.documentUrl,
@@ -59,9 +59,12 @@ export const ObligationUpdateFromFormSchema = ObligationFormValuesSchema.transfo
       dueDate: values.dueDate,
       requiresDocument: values.requiresDocument,
       description: values.description,
-      companyTaxId: values.companyTaxId,
       documentUrl: values.documentUrl,
     };
+
+    if (values.companyTaxId !== undefined && values.companyTaxId !== "") {
+      payload.companyTaxId = values.companyTaxId;
+    }
 
     return ObligationUpdate.parse(payload);
   },

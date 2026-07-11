@@ -23,7 +23,6 @@ const emptyForm = (): ObligationFormValues => ({
   description: "",
   owner: "",
   dueDate: new Date().toISOString().slice(0, 10),
-  companyTaxId: "",
   requiresDocument: false,
   documentUrl: null,
 });
@@ -125,9 +124,14 @@ export default function ObligationForm({
           <Field label={t("common.taxId")}>
             <input
               className={inputClass}
-              value={form.companyTaxId}
+              value={form.companyTaxId ?? ""}
               placeholder={companyTaxIdPlaceholder}
-              onChange={(e) => handleChange("companyTaxId", e.target.value)}
+              onChange={(e) =>
+                handleChange(
+                  "companyTaxId",
+                  e.target.value === "" ? undefined : e.target.value,
+                )
+              }
             />
           </Field>
 

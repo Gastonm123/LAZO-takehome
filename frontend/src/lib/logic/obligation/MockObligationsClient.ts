@@ -190,7 +190,10 @@ export class MockObligationsClient extends ObligationsClient {
       documentUrl: body.requiresDocument
         ? (body.documentUrl ?? null)
         : null,
-      companyTaxId: maskTaxId(body.companyTaxId!),
+      companyTaxId:
+        body.companyTaxId !== undefined
+          ? maskTaxId(body.companyTaxId)
+          : current.companyTaxId,
       updatedAt: new Date().toISOString(),
     };
 

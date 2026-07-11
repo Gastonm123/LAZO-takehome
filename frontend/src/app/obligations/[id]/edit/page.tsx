@@ -23,7 +23,6 @@ export default async function EditObligationPage({
           description: obligation.description,
           owner: obligation.owner,
           dueDate: obligation.dueDate,
-          companyTaxId: "",
           requiresDocument: obligation.requiresDocument,
           documentUrl: obligation.documentUrl,
         }}

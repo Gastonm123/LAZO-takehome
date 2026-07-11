@@ -85,21 +85,35 @@ describe("ObligationUpdate", () => {
 });
 
 describe("ObligationUpdateFromFormSchema", () => {
-  it("includes empty companyTaxId and description on update", () => {
+  it("omits companyTaxId when unchanged on update", () => {
     const body = ObligationUpdateFromFormSchema.parse({
       type: "annual_report",
       title: "Updated",
       description: "",
       owner: "Alice",
       dueDate: "2026-12-31",
-      companyTaxId: "",
       requiresDocument: false,
       documentUrl: null,
     });
 
-    expect(body.companyTaxId).toBe("");
+    expect(body.companyTaxId).toBeUndefined();
     expect(body.description).toBe("");
     expect(body.title).toBe("Updated");
+  });
+
+  it("includes companyTaxId when a new value is provided", () => {
+    const body = ObligationUpdateFromFormSchema.parse({
+      type: "annual_report",
+      title: "Updated",
+      description: "",
+      owner: "Alice",
+      dueDate: "2026-12-31",
+      companyTaxId: "99-8887777",
+      requiresDocument: false,
+      documentUrl: null,
+    });
+
+    expect(body.companyTaxId).toBe("99-8887777");
   });
 });
 
@@ -128,6 +142,20 @@ describe("ObligationCreateFromFormSchema", () => {
         owner: "Alice",
         dueDate: "2026-12-31",
         companyTaxId: "123456789",
+        requiresDocument: false,
+        documentUrl: null,
+      }),
+    ).toThrow();
+  });
+
+  it("throws when companyTaxId is missing on create", () => {
+    expect(() =>
+      ObligationCreateFromFormSchema.parse({
+        type: "annual_report",
+        title: "Title",
+        description: "",
+        owner: "Alice",
+        dueDate: "2026-12-31",
         requiresDocument: false,
         documentUrl: null,
       }),
